@@ -1,3 +1,0 @@
-/data/ai/Cplusplus/simple_rpc/build/CMakeFiles/app.dir
-/data/ai/Cplusplus/simple_rpc/build/CMakeFiles/edit_cache.dir
-/data/ai/Cplusplus/simple_rpc/build/CMakeFiles/rebuild_cache.dir
