@@ -6,9 +6,15 @@ class Config {
    public:
     Config(const char* xmlfile);
 
+    static Config* GetGlobalConfig();
+    static void SetGlobalConfig(const char* xmlfile);
+
+    std::string m_log_level;
+
    private:
-    std::map<std::string, std::string> m_config_values;
-}
-};  // namespace rocket
+    // std::map<std::string, std::string> m_config_values;
+
+};
+}  // namespace rocket
 
 #endif

@@ -4,12 +4,8 @@
 
 #include "log.h"
 #include "util.h"
+#include "config.h"
 
-// #define DEBUGLOG(str, ...)\
-//     std::string msg = (new rocket::LogEvent(rocket::Loglevel::Debug)->toString()) + \
-//     rocket::formatString(str, ##__VA_ARGS__); \
-//     rocket::g_logger->pushLog(msg); \
-//     rocket::g_logger->log();
 
 namespace rocket {
 
@@ -19,7 +15,11 @@ Logger* Logger::GetGlobalLogger() {
     if(g_logger) {
         return g_logger;
     }
-    g_logger = new Logger();
+    LogLevel global_log_level = StringToLogLevel(Config::GetGlobalConfig()->m_log_level);
+
+    printf("Init log level [%s] \n", LogLevelToString(global_log_level).c_str());
+
+    g_logger = new Logger(global_log_level);
     return g_logger;
 }
 
@@ -39,6 +39,17 @@ std::string LogLevelToString(LogLevel level) {
         default:
             return "UNKNOWN";
     }
+}
+
+LogLevel StringToLogLevel(const std::string& log_level) {
+    if (log_level ==  "DEBUG")
+        return Debug;
+    else if (log_level ==  "INFO")
+        return Info;
+    else if (log_level ==  "ERROR")
+        return Error;
+    else
+        return UnKonwn;
 }
 
 std::string LogEvent::toString() {
@@ -79,7 +90,7 @@ void Logger::log() {
         std::string msg = m_buffer.front();
         m_buffer.pop();
         // cout << msg.c_str() << endl;
-        printf(msg.c_str());
+        printf("%s", msg.c_str());
     }
 }
 

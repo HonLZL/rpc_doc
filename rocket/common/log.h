@@ -5,6 +5,8 @@
 #include <queue>
 #include <string>
 
+#include "config.h"
+
 // 命名空间（namespace）是用来组织代码并避免命名冲突的一种机制。
 // 它允许你将一系列的标识符（变量名、函数名、类名等）封装在一个命名空间中，
 // 从而避免与其他部分的代码发生命名冲突
@@ -23,14 +25,27 @@ std::string formatString(const char* str, Args&&... args) {
     return result;
 }
 
-#define DEBUGLOG(str, ...)                                                          \
-    std::string msg = (new rocket::LogEvent(rocket::LogLevel::Debug))->toString() + \
-    rocket::formatString(str, ##__VA_ARGS__);                                       \
-    msg += '\n';                                                                    \
-    rocket::Logger::GetGlobalLogger()->pushLog(msg);                                \
-    rocket::Logger::GetGlobalLogger()->log();
+// 反斜杠 \ 在这里表示宏定义在下一行继续，而不是在当前行结束。
+// __VA_ARGS__宏用来接受不定数量的参数, 当__VA_ARGS__宏前面##时，可以省略参数输入
+#define DEBUGLOG(str, ...)                                                                                   \
+    rocket::Logger::GetGlobalLogger()->pushLog((new rocket::LogEvent(rocket::LogLevel::Debug))->toString() + \
+    rocket::formatString(str, ##__VA_ARGS__) + '\n');                                                        \
+    rocket::Logger::GetGlobalLogger()->log();                                                                \
+
+
+#define INFOLOG(str, ...)                                                                                   \
+    rocket::Logger::GetGlobalLogger()->pushLog((new rocket::LogEvent(rocket::LogLevel::Info))->toString() + \
+    rocket::formatString(str, ##__VA_ARGS__) + '\n');                                                       \
+    rocket::Logger::GetGlobalLogger()->log();                                                               \
+
+#define ERRORLOG(str, ...)                                                                                   \
+    rocket::Logger::GetGlobalLogger()->pushLog((new rocket::LogEvent(rocket::LogLevel::Error))->toString() + \
+    rocket::formatString(str, ##__VA_ARGS__) + '\n');                                                        \
+    rocket::Logger::GetGlobalLogger()->log();                                                                \
+
 
 enum LogLevel {
+    UnKonwn = 0,
     Debug = 1,
     Info = 2,
     Error = 3
@@ -38,6 +53,8 @@ enum LogLevel {
 
 class Logger {
    public:
+
+    Logger(LogLevel level) : m_set_level(level) {}
     typedef std::shared_ptr<Logger> s_ptr;
 
     void pushLog(const std::string& msg);
@@ -53,6 +70,8 @@ class Logger {
 };
 
 std::string LogLevelToString(LogLevel level);
+
+LogLevel StringToLogLevel(const std::string& Log_level);
 
 class LogEvent {
    public:
