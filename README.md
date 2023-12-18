@@ -91,3 +91,9 @@ launch.json
 }
 
 ```
+
+## 3 pthread_mutex_init
+$ man pthread_mutex_init
+No manual entry for pthread_mutex_init
+$sudo apt-get install glibc-doc  
+即可正常使用 man pthread_mutex_init

@@ -6,6 +6,8 @@
 #include <string>
 
 #include "config.h"
+#include "mutex.h"
+
 
 // 命名空间（namespace）是用来组织代码并避免命名冲突的一种机制。
 // 它允许你将一系列的标识符（变量名、函数名、类名等）封装在一个命名空间中，
@@ -29,17 +31,20 @@ std::string formatString(const char* str, Args&&... args) {
 // __VA_ARGS__宏用来接受不定数量的参数, 当__VA_ARGS__宏前面##时，可以省略参数输入
 #define DEBUGLOG(str, ...)                                                                                   \
     rocket::Logger::GetGlobalLogger()->pushLog((new rocket::LogEvent(rocket::LogLevel::Debug))->toString() + \
+    "[" + std::string(__FILE__) + ": " + std::to_string(__LINE__) + "]\t" +                                  \
     rocket::formatString(str, ##__VA_ARGS__) + '\n');                                                        \
     rocket::Logger::GetGlobalLogger()->log();                                                                \
 
 
 #define INFOLOG(str, ...)                                                                                   \
     rocket::Logger::GetGlobalLogger()->pushLog((new rocket::LogEvent(rocket::LogLevel::Info))->toString() + \
+    "[" + std::string(__FILE__) + ": " + std::to_string(__LINE__) + "]\t" +                                  \
     rocket::formatString(str, ##__VA_ARGS__) + '\n');                                                       \
     rocket::Logger::GetGlobalLogger()->log();                                                               \
 
 #define ERRORLOG(str, ...)                                                                                   \
     rocket::Logger::GetGlobalLogger()->pushLog((new rocket::LogEvent(rocket::LogLevel::Error))->toString() + \
+    "[" + std::string(__FILE__) + ": " + std::to_string(__LINE__) + "]\t" +                                  \
     rocket::formatString(str, ##__VA_ARGS__) + '\n');                                                        \
     rocket::Logger::GetGlobalLogger()->log();                                                                \
 
@@ -63,10 +68,13 @@ class Logger {
 
     // void log(LogEvent event);
     static Logger* GetGlobalLogger();
+    static void InitGlobalLogger();
 
    private:
     LogLevel m_set_level;
     std::queue<std::string> m_buffer;
+
+    Mutex m_mutex;
 };
 
 std::string LogLevelToString(LogLevel level);

@@ -1,22 +1,30 @@
-#include <iostream>
 #include <pthread.h>
-#include "../rocket/common/log.h"
+#include <iostream>
 #include "../rocket/common/config.h"
+#include "../rocket/common/log.h"
 // #include <tinyxml/tinyxml.h>
 void* fun(void*) {
-    DEBUGLOG("debug this is thread in %s", "fun");
-    INFOLOG("info this is thread in %s", "fun");
+    int i = 100;
+    while (i--) {
+        DEBUGLOG("debug this is thread in %s", "fun");
+        INFOLOG("info this is thread in %s", "fun");
+    }
     return NULL;
 }
 
 int main() {
-
-    rocket::Config::SetGlobalConfig("/data/ai/Cplusplus/simple_rpc/conf/rocket.xml");
+    rocket::Config::SetGlobalConfig("../conf/rocket.xml");
+    rocket::Logger::InitGlobalLogger();
 
     pthread_t thread;
     pthread_create(&thread, NULL, &fun, NULL);
-    DEBUGLOG("debug test log %s", "11");
-    INFOLOG("info test log %s", "11");
+    int i = 100;
+    while (i--) {
+        DEBUGLOG("debug test log %s", "11");
+        INFOLOG("info test log %s", "11");
+    }
+
+    pthread_join(thread, NULL);
     return 0;
 }
 

@@ -5,6 +5,7 @@
 #include "log.h"
 #include "util.h"
 #include "config.h"
+#include "mutex.h"
 
 
 namespace rocket {
@@ -12,15 +13,14 @@ namespace rocket {
 
 static Logger* g_logger = nullptr;
 Logger* Logger::GetGlobalLogger() {
-    if(g_logger) {
-        return g_logger;
-    }
-    LogLevel global_log_level = StringToLogLevel(Config::GetGlobalConfig()->m_log_level);
+    return g_logger;
+}
 
+void Logger::InitGlobalLogger() {
+    LogLevel global_log_level = StringToLogLevel(Config::GetGlobalConfig()->m_log_level);
     printf("Init log level [%s] \n", LogLevelToString(global_log_level).c_str());
 
     g_logger = new Logger(global_log_level);
-    return g_logger;
 }
 
 // LogEvent(LogLevel level);
@@ -76,19 +76,27 @@ std::string LogEvent::toString() {
 
     ss << "[" << LogLevelToString(m_level) << "]\t"
         << "[" << time_str << "]\t"
-        << "[" << m_pid << ":" << m_thread_id << "]\t"
-        << "[" << std::string(__FILE__) << ": " << __LINE__ << "]\t";
+        << "[" << m_pid << ":" << m_thread_id << "]\t";
     return ss.str();
 
 }
 void Logger::pushLog(const std::string& msg) {
+    ScopeMutext<Mutex> lock(m_mutex);
     m_buffer.push(msg);
+    lock.unlock();
 }
 
 void Logger::log() {
-    while (!m_buffer.empty()) {
-        std::string msg = m_buffer.front();
-        m_buffer.pop();
+    ScopeMutext<Mutex> lock(m_mutex);
+
+    std::queue<std::string> tmp;
+    m_buffer.swap(tmp);
+
+    lock.unlock();
+
+    while (!tmp.empty()) {
+        std::string msg = tmp.front();
+        tmp.pop();
         // cout << msg.c_str() << endl;
         printf("%s", msg.c_str());
     }
