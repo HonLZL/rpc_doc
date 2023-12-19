@@ -6,9 +6,9 @@
 namespace rocket {
 
 template <class T>
-class ScopeMutext {
+class ScopeMutex {
    public:
-    ScopeMutext(T& mutex) : m_mutex(mutex) {
+    ScopeMutex(T& mutex) : m_mutex(mutex) {
         m_mutex.lock();
         m_is_lock = true;
     }

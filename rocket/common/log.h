@@ -33,20 +33,20 @@ std::string formatString(const char* str, Args&&... args) {
     rocket::Logger::GetGlobalLogger()->pushLog((new rocket::LogEvent(rocket::LogLevel::Debug))->toString() + \
     "[" + std::string(__FILE__) + ": " + std::to_string(__LINE__) + "]\t" +                                  \
     rocket::formatString(str, ##__VA_ARGS__) + '\n');                                                        \
-    rocket::Logger::GetGlobalLogger()->log();                                                                \
+    rocket::Logger::GetGlobalLogger()->log();                                                                
 
 
 #define INFOLOG(str, ...)                                                                                   \
     rocket::Logger::GetGlobalLogger()->pushLog((new rocket::LogEvent(rocket::LogLevel::Info))->toString() + \
-    "[" + std::string(__FILE__) + ": " + std::to_string(__LINE__) + "]\t" +                                  \
-    rocket::formatString(str, ##__VA_ARGS__) + '\n');                                                       \
-    rocket::Logger::GetGlobalLogger()->log();                                                               \
-
+    "[" + std::string(__FILE__) + ": " + std::to_string(__LINE__) + "]\t" +                                 \
+    rocket::formatString(str, ##__VA_ARGS__) + '\n');                                                        \
+    rocket::Logger::GetGlobalLogger()->log();         
+    
 #define ERRORLOG(str, ...)                                                                                   \
     rocket::Logger::GetGlobalLogger()->pushLog((new rocket::LogEvent(rocket::LogLevel::Error))->toString() + \
     "[" + std::string(__FILE__) + ": " + std::to_string(__LINE__) + "]\t" +                                  \
     rocket::formatString(str, ##__VA_ARGS__) + '\n');                                                        \
-    rocket::Logger::GetGlobalLogger()->log();                                                                \
+    rocket::Logger::GetGlobalLogger()->log();                                                                
 
 
 enum LogLevel {
