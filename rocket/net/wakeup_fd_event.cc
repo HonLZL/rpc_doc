@@ -8,7 +8,7 @@ WakeUpFdEvent::WakeUpFdEvent(int fd)
     : FdEvent(fd){};
 WakeUpFdEvent::~WakeUpFdEvent(){};
 
-void WakeUpEvent::wakeup() {
+void WakeUpFdEvent::wakeup() {
     char buf[8] = {'a'};
     int rt = write(m_fd, buf, 8);
     if (rt != 8) {

@@ -8,9 +8,9 @@ namespace rocket {
 class FdEvent {
    public:
     enum TriggerEvent {
-        IN_EVENT = EPOLLIN;    // EPOLLIN 用于指示关联的文件描述符上有数据可读取
-        OUT_EVENT = EPOLLOUT;  // 可些事件
-    }
+        IN_EVENT = EPOLLIN,    // EPOLLIN 用于指示关联的文件描述符上有数据可读取
+        OUT_EVENT = EPOLLOUT,  // 可写事件
+    };
     FdEvent(int fd);
     ~FdEvent();
 
@@ -25,7 +25,10 @@ class FdEvent {
 
    protected:
     int m_fd{-1};
+    epoll_event m_listen_events;
     std::function<void()> m_read_callback;
     std::function<void()> m_write_callback;
 };
 }  // namespace rocket
+
+#endif
