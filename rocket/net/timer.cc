@@ -10,7 +10,7 @@ namespace rocket {
 Timer::Timer()
     : FdEvent() {
     m_fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
-    DEBUGLOG("timer fd = %d \n", m_fd);
+    DEBUGLOG("timer fd = %d ", m_fd);
 
     // 把fd刻度事件放到了 eventloop 上监听
     listen(FdEvent::IN_EVENT, std::bind(&Timer::onTimer, this));
@@ -48,6 +48,7 @@ void Timer::onTimer() {
             break;
         }
     }
+    
     // 删除上述任务
     m_pending_events.erase(m_pending_events.begin(), it);
     lock.unlock();
@@ -86,13 +87,17 @@ void Timer::resetArriveTime() {
     }
     timespec ts;
     memset(&ts, 0, sizeof(ts)); 
-    ts.tv_sec = inteval / 1000;
-    ts.tv_nsec = (inteval % 100) * 1000;
+    // tv_sec 时间的秒数部分 用于存储从 1970 年 1 月 1 日开始的秒数
+    // tv_nsec 时间的纳秒部分
+    ts.tv_sec = inteval / 1000;  // inteval 是微秒,得到秒数
+    ts.tv_nsec = (inteval % 1000) * 1000000;  // 得到纳秒数
 
     itimerspec value;
     memset(&value, 0, sizeof(value));
+    // 定时器将在每隔指定的时间间隔后重复触发
     value.it_value = ts;
 
+    // 设置定时器的函数，它允许用户创建和配置定时器，以便在特定的时间间隔内产生定时事件
     // fd 会在指定的时间,触发可读事件
     int rt = timerfd_settime(m_fd, 0, &value, nullptr);
     if (rt != 0) {

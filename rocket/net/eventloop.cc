@@ -15,7 +15,7 @@
         op = EPOLL_CTL_MOD;                                                                   \
     }                                                                                         \
     epoll_event tmp = event->getEpollEvent();                                                 \
-    /*epoll_ctl: 管理红黑树上的文件描述符:添加,修改,删除*/                                          \
+    /*epoll_ctl: 管理红黑树上的文件描述符:添加,修改,删除*/                  \
     int rt = epoll_ctl(m_epoll_fd, op, event->getFd(), &tmp);                                 \
     if (rt == -1) {                                                                           \
         ERRORLOG("failed epoll_ctl when add fd, errno=%d, error=%s", errno, strerror(errno)); \
@@ -72,7 +72,6 @@ EventLoop::~EventLoop() {
     }
 }
 
-
 void EventLoop::initTimer() {
     m_timer = new Timer();
     addEpollEvent(m_timer);
@@ -124,8 +123,6 @@ void EventLoop::loop() {
         // DEBUGLOG("now begin to epoll_wait = %d \n", 0);
 
         // 检测 epoll 树中是否有就绪的文件描述符
-
-        // 检测 epoll 树中是否有就绪的文件描述符
         int rt = epoll_wait(m_epoll_fd, result_events, g_epoll_max_events, timeout);
 
         DEBUGLOG("now end epoll_wait, rt = %d", rt);
@@ -138,15 +135,15 @@ void EventLoop::loop() {
                 // static_cast 将隐式转换显式化表示出来 epoll_event => FdEvent
                 FdEvent* fd_event = static_cast<FdEvent*>(trigger_event.data.ptr);
 
-                if (fd_event == NULL) {
+                if (fd_event == nullptr) {
                     continue;
                 }
 
-                if (trigger_event.events | EPOLLIN) {
+                if (trigger_event.events & EPOLLIN) {
                     DEBUGLOG("fd %d trigger EPOLLIN event", fd_event->getFd());
                     addTask(fd_event->handler(FdEvent::IN_EVENT));
                 }
-                if (trigger_event.events | EPOLLOUT) {
+                if (trigger_event.events & EPOLLOUT) {
                     DEBUGLOG("fd %d trigger EPOLLOUT event", fd_event->getFd());
                     addTask(fd_event->handler(FdEvent::OUT_EVENT));
                 }
@@ -156,10 +153,13 @@ void EventLoop::loop() {
 }
 
 void EventLoop::wakeup() {
+    INFOLOG("WAKE UP");
     m_wakeup_fd_event->wakeup();
 }
 
 void EventLoop::stop() {
+    m_stop_flag = true;
+    wakeup();
 }
 
 void EventLoop::dealWakeup() {
