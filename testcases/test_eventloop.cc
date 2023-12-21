@@ -11,6 +11,7 @@
 #include "../rocket/net/eventloop.h"
 #include "../rocket/net/fd_event.h"
 #include "../rocket/net/io_thread.h"
+#include "../rocket/net/io_thread_group.h"
 #include "../rocket/net/timer_event.h"
 
 void test_io_thread() {
@@ -56,24 +57,36 @@ void test_io_thread() {
             INFOLOG("trigger timer event, count= %d", i++);
         });
     
-    // 栈对象离开函数会析构, 在函数中创建的对象，在函数结束时会被销毁
-    // 栈上创建的对象，也就是局部对象，当其所在的函数执行结束时会被自动销毁和析构。
-    // 堆上创建的对象需要手动管理其生命周期, new 和 delete
-    rocket::IOThread io_thread;
+    // // 栈对象离开函数会析构, 在函数中创建的对象，在函数结束时会被销毁
+    // // 栈上创建的对象，也就是局部对象，当其所在的函数执行结束时会被自动销毁和析构。
+    // // 堆上创建的对象需要手动管理其生命周期, new 和 delete
+    // rocket::IOThread io_thread;
 
-    // FdEvent 有可读事件发生,EventLoop 会执行读回调函数
-    io_thread.getEventLoop()->addEpollEvent(&event);
-    io_thread.getEventLoop()->addTimerEvent(timer_event);
+    // // FdEvent 有可读事件发生,EventLoop 会执行读回调函数
+    // io_thread.getEventLoop()->addEpollEvent(&event);
+    // io_thread.getEventLoop()->addTimerEvent(timer_event);
 
-    io_thread.start();
-    io_thread.join();
+    // io_thread.start();
+    // io_thread.join();
+
+    rocket::IOThreadGroup io_thread_group(2);
+
+    // 给 io线程1 添加了 Fd 事件和定时事件
+    rocket::IOThread* io_thread = io_thread_group.getIOThread();
+    io_thread->getEventLoop()->addEpollEvent(&event);
+    io_thread->getEventLoop()->addTimerEvent(timer_event);
+
+    // 给 io线程2 添加了定时任务
+    rocket::IOThread* io_thread2 = io_thread_group.getIOThread();
+    io_thread2->getEventLoop()->addTimerEvent(timer_event);
+
+    io_thread_group.start();
+    io_thread_group.join();
 }
 
 int main() {
     rocket::Config::SetGlobalConfig("../conf/rocket.xml");
     rocket::Logger::InitGlobalLogger();
-
-    rocket::EventLoop* eventloop = new rocket::EventLoop();
 
     test_io_thread();
 

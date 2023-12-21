@@ -96,7 +96,7 @@ void EventLoop::initWakeUpFdEvent() {
         // 数据读完了
         while (read(m_wakeup_fd, buf, 8) == -1 && errno != EAGAIN) {
         }
-        DEBUGLOG("read full bytes from wakeup fd [%d] \n", m_wakeup_fd);
+        DEBUGLOG("read full bytes from wakeup fd [%d]", m_wakeup_fd);
     });
 
     addEpollEvent(m_wakeup_fd_event);
