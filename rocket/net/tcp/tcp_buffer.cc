@@ -53,11 +53,11 @@ void TcpBuffer::resizeBuffer(int new_size) {
     m_write_index = m_read_index + count;
 }
 
-void TcpBuffer::readFromBuffer(std::vertor<char>& re) {
+void TcpBuffer::readFromBuffer(std::vector<char>& re, int size) {
     if (readAble() == 0) {
         return;
     }
-    int read_size = readAbel() > size ? size : readAble();
+    int read_size = readAble() > size ? size : readAble();
 
     std::vector<char> tmp(read_size);
     memcpy(&tmp[0], &m_buffer[m_read_index], read_size);
@@ -70,13 +70,14 @@ void TcpBuffer::readFromBuffer(std::vertor<char>& re) {
 
 void TcpBuffer::adjustBuffer() {
     if (m_read_index < int(m_buffer.size() / 3)) {
+        // 前面已读的占用1/3,就平移调整
         return;
     }
     std::vector<char> buffer(m_buffer.size());
-    int count = readBuffer();
+    int count = readAble();
 
     memcpy(&buffer[0], &buffer[m_read_index], count);
-    m_buffer.swap(tmp);
+    m_buffer.swap(buffer);
     m_read_index = 0;
     m_write_index = m_read_index + count;
     buffer.clear();
@@ -85,7 +86,7 @@ void TcpBuffer::adjustBuffer() {
 void TcpBuffer::moveReadIndex(int size) {
     size_t j = m_read_index + size;
     if (j >= m_buffer.size()) {
-        ERRORLOG("moveReadIndex error, invalid size %d, old_read_index %d, buffer size %d", size, m_read_index, m_bufer_size);
+        ERRORLOG("moveReadIndex error, invalid size %d, old_read_index %d, buffer size %d", size, m_read_index, m_buffer.size());
         return;
     }
     m_read_index = j;
@@ -95,7 +96,7 @@ void TcpBuffer::moveReadIndex(int size) {
 void TcpBuffer::moveWriteIndex(int size) {
     size_t j = m_write_index + size;
     if (j >= m_buffer.size()) {
-        ERRORLOG("moveWriteIndex error, invalid size %d, old_read_index %d, buffer size %d", size, m_write_index, m_bufer_size);
+        ERRORLOG("moveWriteIndex error, invalid size %d, old_read_index %d, buffer size %d", size, m_write_index, m_buffer.size());
         return;
     }
     m_write_index = j;

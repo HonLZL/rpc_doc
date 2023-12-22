@@ -15,12 +15,14 @@ message("PROJECT_SOURCE_DIR}: " ${PROJECT_SOURCE_DIR} "&&&")
 
 file(GLOB SRC_LIST_COMMON ${CMAKE_CURRENT_SOURCE_DIR}/rocket/common/*.cc)
 file(GLOB SRC_LIST_NET ${CMAKE_CURRENT_SOURCE_DIR}/rocket/net/*.cc)
-set(SRC_LIST ${SRC_LIST_COMMON} ${SRC_LIST_NET})
+file(GLOB SRC_LIST_NET_TCP ${CMAKE_CURRENT_SOURCE_DIR}/rocket/net/tcp/*.cc)
+set(SRC_LIST ${SRC_LIST_COMMON} ${SRC_LIST_NET} ${SRC_LIST_NET_TCP})
 
 message(${CMAKE_CURRENT_SOURCE_DIR})
 
 include_directories(${PROJECT_SOURCE_DIR}/rocket/common)
 include_directories(${PROJECT_SOURCE_DIR}/rocket/net)
+include_directories(${PROJECT_SOURCE_DIR}/rocket/net/tcp)
 
 include_directories(/usr/include/tinyxml)
 
@@ -29,7 +31,7 @@ message(${PROJECT_SOURCE_DIR})
 message(${SRC_LIST})
 
 # 添加可执行文件生成
-add_executable(app testcases/test_eventloop.cc ${SRC_LIST})
+add_executable(app testcases/test_tcp.cc ${SRC_LIST})
 
 # 添加线程库
 target_link_libraries(app pthread)
