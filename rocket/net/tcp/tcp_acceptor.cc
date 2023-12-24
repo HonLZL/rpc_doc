@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <fcntl.h>
 
 #include "../../common/log.h"
 #include "net_addr.h"
@@ -45,7 +46,7 @@ TcpAcceptor::TcpAcceptor(NetAddr::s_ptr local_addr)
 TcpAcceptor::~TcpAcceptor() {
 }
 
-int TcpAcceptor::accept() {
+std::pair<int, NetAddr::s_ptr> TcpAcceptor::accept() {
     if (m_family == AF_INET) {
         sockaddr_in client_addr;
         memset(&client_addr, 0, sizeof(client_addr));
@@ -55,15 +56,14 @@ int TcpAcceptor::accept() {
         int client_fd = ::accept(m_listenfd, reinterpret_cast<sockaddr*>(&client_addr), &client_addr_len);
         if (client_fd < 0) {
             ERRORLOG("accept error, errno=%d, error=%s", errno, strerror(errno));
-            exit(0);
         }
 
-        IPNetAddr peer_addr(client_addr);
-        INFOLOG("A client have accept succ, peer addr [%s]", peer_addr.toString().c_str());
-        return client_fd;
+        IPNetAddr::s_ptr peer_addr = std::make_shared<IPNetAddr>(client_addr);
+        INFOLOG("A client have accept succ, peer addr [%s]", peer_addr->toString().c_str());
+        return std::make_pair(client_fd, peer_addr);
     } else {
         // 除了 ipv4 的其他协议
-        return -1;
+        return std::make_pair(-1, nullptr);
     }
 }
 

@@ -3,13 +3,13 @@
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <string>
 #include <memory>
+#include <string>
 
 namespace rocket {
 class NetAddr {
    public:
-   typedef std::shared_ptr<NetAddr> s_ptr;
+    typedef std::shared_ptr<NetAddr> s_ptr;
     // 纯虚函数,支持多态,子类必须重写这些纯虚函数
     virtual sockaddr* getSockAddr() = 0;
     virtual socklen_t getSockLen() = 0;

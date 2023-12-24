@@ -36,6 +36,8 @@ OutBuffer
 namespace rocket {
 class TcpBuffer {
    public:
+    typedef std::shared_ptr<TcpBuffer> s_ptr;
+
     TcpBuffer(int size);
     ~TcpBuffer();
 
@@ -50,6 +52,8 @@ class TcpBuffer {
     int writeIndex();
 
     void writeIndex(const char* buf, int size);
+
+    void writeToBuffer(const char* buf, int size);
 
     void readFromBuffer(std::vector<char>& re, int size);
 

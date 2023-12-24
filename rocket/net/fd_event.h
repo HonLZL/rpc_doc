@@ -11,12 +11,19 @@ class FdEvent {
         IN_EVENT = EPOLLIN,    // EPOLLIN 用于指示关联的文件描述符上有数据可读取,读缓冲区有数据
         OUT_EVENT = EPOLLOUT,  // 可写事件,写缓冲区是否可写
     };
-    FdEvent();
     FdEvent(int fd);
+    FdEvent();
     ~FdEvent();
 
+    void setNonBlock();
+
     std::function<void()> handler(TriggerEvent event_type);
+
     void listen(TriggerEvent event_type, std::function<void()> callback);
+
+    // 取消监听
+    void cancleListen(TriggerEvent event_type);
+
     int getFd() const {
         return m_fd;
     }

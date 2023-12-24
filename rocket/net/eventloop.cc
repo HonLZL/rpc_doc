@@ -15,11 +15,13 @@
         op = EPOLL_CTL_MOD;                                                                   \
     }                                                                                         \
     epoll_event tmp = event->getEpollEvent();                                                 \
-    /*epoll_ctl: 管理红黑树上的文件描述符:添加,修改,删除*/                  \
+    INFOLOG("epoll_event.events = %d", (int)tmp.events);                                      \
+    /*epoll_ctl: 管理红黑树上的文件描述符:添加,修改,删除*/                                          \
     int rt = epoll_ctl(m_epoll_fd, op, event->getFd(), &tmp);                                 \
     if (rt == -1) {                                                                           \
         ERRORLOG("failed epoll_ctl when add fd, errno=%d, error=%s", errno, strerror(errno)); \
     }                                                                                         \
+    m_listen_fds.insert(event->getFd());                                                      \
     DEBUGLOG("add event sucessfully, fd[%d]", event->getFd());
 
 #define DEL_TO_EPOLL()                                                                        \
@@ -29,10 +31,11 @@
     }                                                                                         \
     int op = EPOLL_CTL_DEL;                                                                   \
     epoll_event tmp = event->getEpollEvent();                                                 \
-    int rt = epoll_ctl(m_epoll_fd, op, event->getFd(), &tmp);                                 \
+    int rt = epoll_ctl(m_epoll_fd, op, event->getFd(), nullptr);                                 \
     if (rt == -1) {                                                                           \
         ERRORLOG("failed epoll_ctl when add fd, errno=%d, error=%s", errno, strerror(errno)); \
     }                                                                                         \
+    m_listen_fds.erase(event->getFd());                                                       \
     DEBUGLOG("delete event successfully, fd[%d]", event->getFd());
 
 namespace rocket {
@@ -128,7 +131,7 @@ void EventLoop::loop() {
         DEBUGLOG("now end epoll_wait, rt = %d", rt);
 
         if (rt < 0) {
-            ERRORLOG("epoll_wait errot, errno = %d", errno);
+            ERRORLOG("epoll_wait error, errno = %d", errno);
         } else {
             for (int i = 0; i < rt; i++) {
                 epoll_event trigger_event = result_events[i];
@@ -136,6 +139,7 @@ void EventLoop::loop() {
                 FdEvent* fd_event = static_cast<FdEvent*>(trigger_event.data.ptr);
 
                 if (fd_event == nullptr) {
+                    ERRORLOG("fd_event = nullptr, continue");
                     continue;
                 }
 
@@ -189,6 +193,7 @@ void EventLoop::addTask(std::function<void()> cb, bool is_wakeup /*=false*/) {
     ScopeMutex<Mutex> lock(m_mutex);  // 向任务队列里加任务时,要加锁
     m_pending_tasks.push(cb);
     lock.unlock();
+    
     if (is_wakeup) {
         wakeup();
     }
@@ -199,8 +204,8 @@ bool EventLoop::isInLoopThread() {
     return getThreadId() == m_thread_id;
 }
 
-EventLoop* EventLoop::getCurrentEventLoop() {
-    if(t_current_eventloop) {
+EventLoop* EventLoop::GetCurrentEventLoop() {
+    if (t_current_eventloop) {
         return t_current_eventloop;
     }
     t_current_eventloop = new EventLoop();

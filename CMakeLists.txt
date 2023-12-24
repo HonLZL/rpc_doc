@@ -10,8 +10,7 @@ set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g2 -ggdb")
 set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
 
-
-message("PROJECT_SOURCE_DIR}: " ${PROJECT_SOURCE_DIR} "&&&")
+ 
 
 file(GLOB SRC_LIST_COMMON ${CMAKE_CURRENT_SOURCE_DIR}/rocket/common/*.cc)
 file(GLOB SRC_LIST_NET ${CMAKE_CURRENT_SOURCE_DIR}/rocket/net/*.cc)
@@ -31,12 +30,15 @@ message(${PROJECT_SOURCE_DIR})
 message(${SRC_LIST})
 
 # 添加可执行文件生成
-add_executable(app testcases/test_tcp.cc ${SRC_LIST})
+add_executable(test_tcp testcases/test_tcp.cc ${SRC_LIST})
+add_executable(test_client testcases/test_client.cc ${SRC_LIST})
 
 # 添加线程库
-target_link_libraries(app pthread)
+target_link_libraries(test_tcp pthread)
+target_link_libraries(test_client pthread)
 
 # target_link_libraries(app libtinyxml.so)
-target_link_libraries(app tinyxml)
+target_link_libraries(test_tcp tinyxml)
+target_link_libraries(test_client tinyxml)
 
 # sudo code --user-data-dir ="~/.vscode-root" --no-sandbox

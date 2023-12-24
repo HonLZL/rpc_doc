@@ -11,10 +11,13 @@ subReactor 通常有多个,每个 subReactor 由一个线程来运行,其注册 
 #ifndef ROCKET_COMMON_NET_TCP_TCP_SERVER_H
 #define ROCKET_COMMON_NET_TCP_TCP_SERVER_H
 
+#include <set>
+
 #include "../eventloop.h"
 #include "io_thread_group.h"
 #include "net_addr.h"
 #include "tcp_acceptor.h"
+#include "tcp_connection.h"
 
 namespace rocket {
 class TcpServer {
@@ -39,6 +42,8 @@ class TcpServer {
     FdEvent* m_listen_fd_event;
 
     int m_client_count{0};
+
+    std::set<TcpConnection::s_ptr> m_client;
 };
 }  // namespace rocket
 

@@ -39,7 +39,7 @@ Config::Config(const char* xmlfile) {
 
     bool rt = xml_document->LoadFile(xmlfile);
     if (!rt) {
-        printf("Start rocket server error, failed to read config file %s\n", xmlfile);
+        printf("Start rocket server error, rt = %d, failed to read config file %s\n", rt, xmlfile);
         xml_document->ErrorDesc();
         exit(0);
     }

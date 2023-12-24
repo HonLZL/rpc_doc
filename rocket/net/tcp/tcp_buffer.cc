@@ -1,8 +1,8 @@
 #include <string.h>
 #include <vector>
 
-#include "tcp_buffer.h"
 #include "../../common/log.h"
+#include "tcp_buffer.h"
 
 namespace rocket {
 TcpBuffer::TcpBuffer(int size)
@@ -30,9 +30,9 @@ int TcpBuffer::writeIndex() {
     return m_write_index;
 }
 
-void TcpBuffer::writeIndex(const char* buf, int size) {
+void TcpBuffer::writeToBuffer(const char* buf, int size) {
     if (size > writeAble()) {
-        // 要写入的尺寸比可写入的尺寸大,无法写入,需要调整扩容
+        // 调整 buffer 的大小，扩容
         int new_size = (int)(1.5 * (m_write_index + size));
         resizeBuffer(new_size);
     }
@@ -40,6 +40,7 @@ void TcpBuffer::writeIndex(const char* buf, int size) {
     // 由src指向地址为起始地址的连续n个字节的数据复制到以destin指向地址为起始地址的空间内
     // 与strcpy相比，memcpy并不是遇到'\0'就结束，而是一定会拷贝完n个字节
     memcpy(&m_buffer[m_write_index], buf, size);
+    m_write_index += size;
 }
 
 void TcpBuffer::resizeBuffer(int new_size) {
@@ -59,6 +60,7 @@ void TcpBuffer::readFromBuffer(std::vector<char>& re, int size) {
     }
     int read_size = readAble() > size ? size : readAble();
 
+    
     std::vector<char> tmp(read_size);
     memcpy(&tmp[0], &m_buffer[m_read_index], read_size);
 

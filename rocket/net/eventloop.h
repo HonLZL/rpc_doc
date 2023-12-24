@@ -52,7 +52,7 @@ class EventLoop {
 
     void addTimerEvent(TimerEvent::s_ptr event);
 
-    static EventLoop* getCurrentEventLoop();
+    static EventLoop* GetCurrentEventLoop();
 
    private:
     void dealWakeup();
