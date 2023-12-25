@@ -15,8 +15,6 @@ void test_tcp_server() {
 }
 
 int main() {
-    int a = 1;
-    std::cout << a << std::endl;
     rocket::Config::SetGlobalConfig("/data/ai/Cplusplus/simple_rpc/conf/rocket.xml");
     rocket::Logger::InitGlobalLogger();
     test_tcp_server();

@@ -31,8 +31,11 @@ class TcpClient {
     void connect(std::function<void()> done);
 
     // 异步发送 Message, 字符串 或 RPC 协议,发送成功,会调用 done 函数,函数的入参就是 message 对象
-    void writeMessage(AbstractProtocol::s_ptr, std::function<void(AbstractProtocol::s_ptr)> done);
-    void readMessage(AbstractProtocol::s_ptr, std::function<void(AbstractProtocol::s_ptr)> done);
+    void writeMessage(AbstractProtocol::s_ptr msssage, std::function<void(AbstractProtocol::s_ptr)> done);
+
+    void readMessage(const std::string& req_id,  std::function<void(AbstractProtocol::s_ptr)> done);
+
+    
 
 
    private:

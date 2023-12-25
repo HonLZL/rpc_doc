@@ -11,67 +11,82 @@
 #include <string>
 
 #include "../rocket/common/log.h"
+#include "../rocket/net/abstract_protocol.h"
+#include "../rocket/net/string_coder.h"
 #include "../rocket/net/tcp/net_addr.h"
 #include "../rocket/net/tcp/tcp_client.h"
 #include "../rocket/net/tcp/tcp_server.h"
 
+
+
 void test_connect() {
-    // 调用 connect 连接 server
-    // write 发送一个字符串
-    // 等待 read 返回结果
 
-    int fd = socket(AF_INET, SOCK_STREAM, 0);
+  // 调用 conenct 连接 server
+  // wirte 一个字符串
+  // 等待 read 返回结果
 
-    if (fd < 0) {
-        ERRORLOG("invalid fd %d", fd);
-        exit(0);
-    }
-    sockaddr_in server_addr;
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(12347);
-    inet_aton("127.0.0.1", &server_addr.sin_addr);
+  int fd = socket(AF_INET, SOCK_STREAM, 0);
 
-    // reinterpret_cast, 强制转换,
-    int rt = connect(fd, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr));
-    if (rt == -1) {
-        ERRORLOG("connect failed %d", fd);
-        exit(0);
-    }
+  if (fd < 0) {
+    ERRORLOG("invalid fd %d", fd);
+    exit(0);
+  }
 
-    DEBUGLOG("connect successfully");
+  sockaddr_in server_addr;
+  memset(&server_addr, 0, sizeof(server_addr));
+  server_addr.sin_family = AF_INET;
+  server_addr.sin_port = htons(12347);
+  inet_aton("127.0.0.1", &server_addr.sin_addr);
 
-    std::string msg = "hello world!";
+  int rt = connect(fd, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr));
 
-    rt = write(fd, msg.c_str(), msg.length());
+  DEBUGLOG("connect success");
 
-    DEBUGLOG("fd %d success write %d bytes, [%s]", fd, rt, msg.c_str());
+  std::string msg = "hello rocket!";
+  
+  rt = write(fd, msg.c_str(), msg.length());
 
-    char buf[100];
-    rt = read(fd, buf, 100);
+  DEBUGLOG("success write %d bytes, [%s]", rt, msg.c_str());
 
-    if (rt >= 0) {
-        buf[rt] = '\0';  // 添加字符串终止符号
-        DEBUGLOG("fd %d success read %d bytes, [%s]", fd, rt, std::string(buf).c_str());
-    }
+  char buf[100];
+  rt = read(fd, buf, 100);
+  DEBUGLOG("success read %d bytes, [%s]", rt, std::string(buf).c_str());
 
-    
 }
 
 void test_tcp_client() {
-    rocket::IPNetAddr::s_ptr addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 12347);
-    rocket::TcpClient client(addr);
-    client.connect([addr]() {
-        DEBUGLOG("connect to [%s] successfully", addr->toString().c_str());
+
+  rocket::IPNetAddr::s_ptr addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 12347);
+  rocket::TcpClient client(addr);
+  client.connect([addr, &client]() {
+    DEBUGLOG("conenct to [%s] success", addr->toString().c_str());
+    std::shared_ptr<rocket::StringProtocol> message = std::make_shared<rocket::StringProtocol>();
+    message->info = "hello rocket!";
+    message->setReqId ("123456");
+    client.writeMessage(message, [](rocket::AbstractProtocol::s_ptr msg_ptr) {
+      DEBUGLOG("send message success");
     });
+
+    client.readMessage("123456", [](rocket::AbstractProtocol::s_ptr msg_ptr) {
+      std::shared_ptr<rocket::StringProtocol> message = std::dynamic_pointer_cast<rocket::StringProtocol>(msg_ptr);
+      DEBUGLOG("req_id[%s], get response [%s]", message->getReqId().c_str(), message->info.c_str());
+    });
+
+    client.writeMessage(message, [](rocket::AbstractProtocol::s_ptr msg_ptr) {
+      DEBUGLOG("send message 22222 success");
+    });
+  });
 }
 
 int main() {
-    rocket::Config::SetGlobalConfig("../conf/rocket.xml");
-    rocket::Logger::InitGlobalLogger();
 
-    // test_connect();
+  rocket::Config::SetGlobalConfig("../conf/rocket.xml");
 
-    test_tcp_client();
+  rocket::Logger::InitGlobalLogger();
 
-    return 0;
+  // test_connect();
+
+  test_tcp_client();
+
+  return 0;
 }
