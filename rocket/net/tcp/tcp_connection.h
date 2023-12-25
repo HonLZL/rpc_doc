@@ -1,15 +1,7 @@
-/*
-TcpConnection:
-read => excute => write => read ...
-read: 读取客户端发来的数据,组装为 RPC 请求
-excute: 将 RPC 请求作为传入参数,执行业务逻辑得到 RPC 请求
-write: 将 RPC 响应发送给客户端
-
-*/
-
 #ifndef ROCKET_NET_TCP_TCP_CONNECTION_H
 #define ROCKET_NET_TCP_TCP_CONNECTION_H
 
+#include <memory>
 #include "../io_thread.h"
 #include "net_addr.h"
 #include "tcp_buffer.h"
@@ -22,15 +14,26 @@ enum TcpState {
     HalfClosing = 3,
     Closed = 4,
 };
+
+enum TcpConnectionType {
+    TcpConnectionByServer = 1,  // 作为服务端使用,代表跟对端客户端的连接
+    TcpConnectionByClient = 2,  // 作为客户端使用,代表跟对端服务端的连接
+
+};
+
 class TcpConnection {
    public:
     typedef std::shared_ptr<TcpConnection> s_ptr;
 
-    // 属于哪个 IO 线程; 表示哪个客户端; 初始化 buffer 大小; 对端地址
-    TcpConnection(IOThread* io_thread, int fd, int buffer_size, NetAddr::s_ptr peer_addr);
+   public:
+    TcpConnection(EventLoop* event_loop, int fd, int buffer_size, NetAddr::s_ptr peer_addr);
+
     ~TcpConnection();
+
     void onRead();
+
     void excute();
+
     void onWrite();
 
     void setState(const TcpState state);
@@ -39,30 +42,29 @@ class TcpConnection {
 
     void clear();
 
-    // 服务器主动连接,主动关闭一些恶意或者无效的连接,触发四次挥手
+    // 服务器主动关闭连接
     void shutdown();
 
-   private:
+    void setConnectionType(TcpConnectionType type);
 
-    IOThread* m_io_thread {nullptr};  // 代表持有该连接的 IO 线程
-    
-    int m_fd{0};
-    
+   private:
+    EventLoop* m_event_loop{NULL};  // 代表持有该连接的 IO 线程
+
     NetAddr::s_ptr m_local_addr;
     NetAddr::s_ptr m_peer_addr;
 
     TcpBuffer::s_ptr m_in_buffer;   // 接收缓冲区
     TcpBuffer::s_ptr m_out_buffer;  // 发送缓冲区
 
-    // EventLoop* m_event_loop {nullptr};  // 代表持有该连接的 IO 线程
-
-    FdEvent* m_fd_event{nullptr};
-
+    FdEvent* m_fd_event{NULL};
 
     TcpState m_state;
 
-};
-}  // namespace rocket
+    int m_fd{0};
 
+    TcpConnectionType m_connection_type{TcpConnectionByServer};
+};
+
+}  // namespace rocket
 
 #endif

@@ -13,3 +13,37 @@ Read: 读取客户端发来的数据没,组装为 RPC 请求
 其他 errno 直接报错
 
 */
+#ifndef ROCKET_NET_TCP_TCP_CLIENT_H
+#define ROCKET_NET_TCP_TCP_CLIENT_H
+
+#include "net_addr.h"
+#include "tcp_connection.h"
+#include "../eventloop.h"
+#include "../abstract_protocol.h"
+
+namespace rocket {
+class TcpClient {
+   public:
+    TcpClient(NetAddr::s_ptr peer_addr);
+    ~TcpClient();
+
+    // 异步进行connect,如果connect成功, done 会被执行
+    void connect(std::function<void()> done);
+
+    // 异步发送 Message, 字符串 或 RPC 协议,发送成功,会调用 done 函数,函数的入参就是 message 对象
+    void writeMessage(AbstractProtocol::s_ptr, std::function<void(AbstractProtocol::s_ptr)> done);
+    void readMessage(AbstractProtocol::s_ptr, std::function<void(AbstractProtocol::s_ptr)> done);
+
+
+   private:
+    NetAddr::s_ptr m_peer_addr;
+    EventLoop* m_event_loop{nullptr};
+    int m_fd{-1};
+    FdEvent* m_fd_event{nullptr};
+
+    TcpConnection::s_ptr m_connection;
+};
+
+}  // namespace rocket
+
+#endif

@@ -54,6 +54,8 @@ class EventLoop {
 
     static EventLoop* GetCurrentEventLoop();
 
+    bool isLooping();
+
    private:
     void dealWakeup();
 
@@ -77,6 +79,8 @@ class EventLoop {
     Mutex m_mutex;
 
     Timer* m_timer{nullptr};
+
+    bool m_is_looping {false};
 };
 }  // namespace rocket
 

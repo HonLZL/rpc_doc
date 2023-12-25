@@ -6,11 +6,13 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <iostream>
 #include <memory>
 #include <string>
 
 #include "../rocket/common/log.h"
 #include "../rocket/net/tcp/net_addr.h"
+#include "../rocket/net/tcp/tcp_client.h"
 #include "../rocket/net/tcp/tcp_server.h"
 
 void test_connect() {
@@ -38,7 +40,7 @@ void test_connect() {
 
     DEBUGLOG("connect successfully");
 
-    std::string msg = "hello worlds!";
+    std::string msg = "hello world!";
 
     rt = write(fd, msg.c_str(), msg.length());
 
@@ -47,13 +49,29 @@ void test_connect() {
     char buf[100];
     rt = read(fd, buf, 100);
 
-    DEBUGLOG("fd %d success read %d bytes, [%s]", fd, rt, std::string(buf).c_str());
+    if (rt >= 0) {
+        buf[rt] = '\0';  // 添加字符串终止符号
+        DEBUGLOG("fd %d success read %d bytes, [%s]", fd, rt, std::string(buf).c_str());
+    }
+
+    
+}
+
+void test_tcp_client() {
+    rocket::IPNetAddr::s_ptr addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 12347);
+    rocket::TcpClient client(addr);
+    client.connect([addr]() {
+        DEBUGLOG("connect to [%s] successfully", addr->toString().c_str());
+    });
 }
 
 int main() {
     rocket::Config::SetGlobalConfig("../conf/rocket.xml");
     rocket::Logger::InitGlobalLogger();
-    test_connect();
+
+    // test_connect();
+
+    test_tcp_client();
 
     return 0;
 }

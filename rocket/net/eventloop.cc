@@ -106,6 +106,7 @@ void EventLoop::initWakeUpFdEvent() {
 }
 
 void EventLoop::loop() {
+    m_is_looping = true;
     while (!m_stop_flag) {
         ScopeMutex<Mutex> lock(m_mutex);  // 把任务从队列拿出来的过程,要加锁
         std::queue<std::function<void()>> tem_tasks;
@@ -154,6 +155,10 @@ void EventLoop::loop() {
             }
         }
     }
+}
+
+bool EventLoop::isLooping() {
+    return m_is_looping;
 }
 
 void EventLoop::wakeup() {

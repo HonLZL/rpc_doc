@@ -12,6 +12,11 @@ class ScopeMutex {
         m_mutex.lock();
         m_is_lock = true;
     }
+    
+    ~ScopeMutex() {
+        m_mutex.unlock();
+        m_is_lock = false;
+    }
 
     void lock() {
         if (!m_is_lock) {
