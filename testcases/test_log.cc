@@ -4,27 +4,29 @@
 #include "../rocket/common/log.h"
 // #include <tinyxml/tinyxml.h>
 void* fun(void*) {
-    int i = 100;
+    int i = 1;
     while (i--) {
         DEBUGLOG("debug this is thread in %s", "fun");
         INFOLOG("info this is thread in %s", "fun");
     }
-    return NULL;
+    return nullptr;
 }
 
 int main() {
     rocket::Config::SetGlobalConfig("../conf/rocket.xml");
     rocket::Logger::InitGlobalLogger();
+    std::cout << "873t2bfg" << std::endl;
 
-    pthread_t thread;
-    pthread_create(&thread, NULL, &fun, NULL);
-    int i = 100;
-    while (i--) {
-        DEBUGLOG("debug test log %s", "11");
-        INFOLOG("info test log %s", "11");
-    }
+    DEBUGLOG("debug test log %s", "11");
+    // pthread_t thread;
+    // pthread_create(&thread, nullptr, &fun, nullptr);
+    // int i = 1;
+    // while (i--) {
+    //     DEBUGLOG("debug test log %s", "11");
+    //     INFOLOG("info test log %s", "11");
+    // }
 
-    pthread_join(thread, NULL);
+    // pthread_join(thread, nullptr);
     return 0;
 }
 

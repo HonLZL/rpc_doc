@@ -20,9 +20,9 @@ class NetAddr {
 
 class IPNetAddr : public NetAddr {
    public:
-    IPNetAddr(const std::string& ip, uint16_t port);
-    IPNetAddr(const std::string& addr);
-    IPNetAddr(sockaddr_in addr);
+    IPNetAddr(const std::string& ip, uint16_t port);  // 由字符串ip 和 无符号16位整数 范围为 [0, 2^16-1=65535] 构造
+    IPNetAddr(const std::string& addr);               // 由字符串构造 
+    IPNetAddr(sockaddr_in addr);                      // 直接由  IPv4 地址信息的结构体构造
 
     sockaddr* getSockAddr();
     socklen_t getSockLen();

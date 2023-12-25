@@ -7,7 +7,7 @@ class Config {
     Config(const char* xmlfile);
 
     static Config* GetGlobalConfig();
-    static void SetGlobalConfig(const char* xmlfile);
+    static void SetGlobalConfig(const char* xmlfile);   // 读取 xml 文件
 
     std::string m_log_level;
 

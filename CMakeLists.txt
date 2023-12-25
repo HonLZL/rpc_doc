@@ -30,15 +30,19 @@ message(${PROJECT_SOURCE_DIR})
 message(${SRC_LIST})
 
 # 添加可执行文件生成
-add_executable(test_tcp testcases/test_tcp.cc ${SRC_LIST})
-add_executable(test_client testcases/test_client.cc ${SRC_LIST})
+# add_executable(test_tcp testcases/test_tcp.cc ${SRC_LIST})
+# add_executable(test_client testcases/test_client.cc ${SRC_LIST})
+add_executable(test_log testcases/test_log.cc ${SRC_LIST})
 
 # 添加线程库
-target_link_libraries(test_tcp pthread)
-target_link_libraries(test_client pthread)
+# target_link_libraries(test_tcp pthread)
+# target_link_libraries(test_client pthread)
+target_link_libraries(test_log pthread)
 
-# target_link_libraries(app libtinyxml.so)
-target_link_libraries(test_tcp tinyxml)
-target_link_libraries(test_client tinyxml)
+# # target_link_libraries(app libtinyxml.so)
+# target_link_libraries(test_tcp tinyxml)
+# target_link_libraries(test_client tinyxml)
+target_link_libraries(test_log tinyxml)
+
 
 # sudo code --user-data-dir ="~/.vscode-root" --no-sandbox

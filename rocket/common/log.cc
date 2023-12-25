@@ -16,6 +16,7 @@ Logger* Logger::GetGlobalLogger() {
     return g_logger;
 }
 
+// 设置 日志级别, 并作为入参, 初始化 全局 g_logger,
 void Logger::InitGlobalLogger() {
     LogLevel global_log_level = StringToLogLevel(Config::GetGlobalConfig()->m_log_level);
     printf("Init log level [%s] \n", LogLevelToString(global_log_level).c_str());
@@ -80,6 +81,7 @@ std::string LogEvent::toString() {
     return ss.str();
 
 }
+
 void Logger::pushLog(const std::string& msg) {
     ScopeMutex<Mutex> lock(m_mutex);
     m_buffer.push(msg);
