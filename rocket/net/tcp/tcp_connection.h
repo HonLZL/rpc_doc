@@ -5,11 +5,11 @@
 #include <map>
 #include <memory>
 
-#include "../abstract_protocol.h"
+#include "../coder/abstract_protocol.h"
 #include "../io_thread.h"
 #include "net_addr.h"
 #include "tcp_buffer.h"
-#include "../abstract_coder.h"
+#include "../coder/abstract_coder.h"
 
 namespace rocket {
 

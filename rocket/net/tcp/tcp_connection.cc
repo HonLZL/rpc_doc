@@ -1,8 +1,9 @@
-#include "tcp_connection.h"
 #include <unistd.h>
+
+#include "../coder/tinypb_coder.h"
 #include "../common/log.h"
 #include "../fd_event_group.h"
-#include "../string_coder.h"
+#include "tcp_connection.h"
 
 namespace rocket {
 
@@ -19,7 +20,7 @@ TcpConnection::TcpConnection(EventLoop* event_loop, int fd, int buffer_size, Net
         listenRead();
     }
 
-    m_coder = new StringCoder();
+    m_coder = new TinyPBCoder();
 }
 
 TcpConnection::~TcpConnection() {
@@ -84,30 +85,45 @@ void TcpConnection::onRead() {
 void TcpConnection::excute() {
     if (m_connection_type == TcpConnectionByServer) {
         // 将 RPC 请求执行业务逻辑，获取 RPC 响应, 再把 RPC 响应发送回去
-        std::vector<char> tmp;
-        int size = m_in_buffer->readAble();
-        tmp.resize(size);
-        m_in_buffer->readFromBuffer(tmp, size);
+        // std::vector<char> tmp;
+        // int size = m_in_buffer->readAble();
+        // tmp.resize(size);
+        // m_in_buffer->readFromBuffer(tmp, size);
+        // INFOLOG("success get request[%s] from client[%s]", msg.c_str(), m_peer_addr->toString().c_str());
+        // m_out_buffer->writeToBuffer(msg.c_str(), msg.length());
 
-        std::string msg;
-        for (size_t i = 0; i < tmp.size(); ++i) {
-            msg += tmp[i];
+        // std::string msg;
+        // for (size_t i = 0; i < tmp.size(); ++i) {
+        //     msg += tmp[i];
+        // }
+        std::vector<AbstractProtocol::s_ptr> result;
+        std::vector<AbstractProtocol::s_ptr> replay_messages;
+        m_coder->decode(result, m_in_buffer);
+        for (size_t i = 0; i < result.size(); i++) {
+            // 1 针对每一个请求,调用rpc 方法
+            // 2 将相应 message 放入到发送缓冲区,监听可写事件回包
+            INFOLOG("success get request[%s] from client[%s]",
+                    result[i]->m_req_id.c_str(), m_peer_addr->toString().c_str());
+            std::shared_ptr<TinyPBProtocol> message = std::make_shared<TinyPBProtocol>();
+            message->m_pb_data = "hello, this is rocket rpc test data";
+
+            INFOLOG("now send message [%s] to client[%s]",
+                    message->m_pb_data.c_str(), m_peer_addr->toString().c_str());
+
+            message->m_req_id = result[i]->m_req_id;
+            replay_messages.emplace_back(message);
         }
-
-        INFOLOG("success get request[%s] from client[%s]", msg.c_str(), m_peer_addr->toString().c_str());
-
-        m_out_buffer->writeToBuffer(msg.c_str(), msg.length());
-
+        m_coder->encode(replay_messages, m_out_buffer);
         listenWrite();
     } else {
         // 从 buffer 里　decode 得到　message 对象, 判断　req_id 是否相等，相等则读成功，执行其回调函数
         std::vector<AbstractProtocol::s_ptr> result;
         m_coder->decode(result, m_in_buffer);
 
-        for(size_t i=0;i<result.size(); i++) {
-            std::string req_id = result[i]->getReqId();
+        for (size_t i = 0; i < result.size(); i++) {
+            std::string req_id = result[i]->m_req_id;
             auto it = m_read_dones.find(req_id);
-            if(it != m_read_dones.end()) {
+            if (it != m_read_dones.end()) {
                 it->second(result[i]);
             }
         }
