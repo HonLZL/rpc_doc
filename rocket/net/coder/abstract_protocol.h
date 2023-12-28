@@ -15,17 +15,17 @@ struct AbstractProtocol : public std::enable_shared_from_this<AbstractProtocol>{
     virtual ~AbstractProtocol() {}
     
     // std::string getReqId() {
-    //     return m_req_id;
+    //     return m_msg_id;
     // }
 
-    // void setReqId(const std::string& req_id) {
-    //     m_req_id = req_id;
+    // void setReqId(const std::string& msg_id) {
+    //     m_msg_id = msg_id;
     // }
 
 
 
    public:
-    std::string m_req_id;  // 请求号,唯一标识一个请求或响应
+    std::string m_msg_id;  // 请求号,唯一标识一个请求或响应
 };
 }  // namespace rocket
 
