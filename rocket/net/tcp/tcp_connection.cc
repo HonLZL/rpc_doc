@@ -7,20 +7,21 @@
 
 namespace rocket {
 
-TcpConnection::TcpConnection(EventLoop* event_loop, int fd, int buffer_size, NetAddr::s_ptr peer_addr, TcpConnectionType type /*= TcpConnectByServer*/)
-    : m_event_loop(event_loop), m_peer_addr(peer_addr), m_state(NotConnected), m_fd(fd), m_connection_type(type) {
+TcpConnection::TcpConnection(EventLoop* event_loop, int fd, int buffer_size, NetAddr::s_ptr peer_addr, NetAddr::s_ptr local_addr, TcpConnectionType type /*= TcpConnectionByServer*/)
+    : m_event_loop(event_loop), m_peer_addr(peer_addr), m_local_addr(local_addr), m_state(NotConnected), m_fd(fd), m_connection_type(type) {
+
     m_in_buffer = std::make_shared<TcpBuffer>(buffer_size);
     m_out_buffer = std::make_shared<TcpBuffer>(buffer_size);
 
     m_fd_event = FdEventGroup::GetFdEventGroup()->getFdEvent(fd);
     m_fd_event->setNonBlock();
 
+    m_coder = new TinyPBCoder();
     // server 才监听; client 只有在读回包（message) 的时候才监听
     if (m_connection_type == TcpConnectionByServer) {
         listenRead();
     }
 
-    m_coder = new TinyPBCoder();
 }
 
 TcpConnection::~TcpConnection() {
@@ -105,12 +106,16 @@ void TcpConnection::excute() {
             INFOLOG("success get request[%s] from client[%s]",
                     result[i]->m_req_id.c_str(), m_peer_addr->toString().c_str());
             std::shared_ptr<TinyPBProtocol> message = std::make_shared<TinyPBProtocol>();
-            message->m_pb_data = "hello, this is rocket rpc test data";
 
-            INFOLOG("now send message [%s] to client[%s]",
-                    message->m_pb_data.c_str(), m_peer_addr->toString().c_str());
+            // message->m_pb_data = "hello, this is rocket rpc test data";
+            // INFOLOG("now send message [%s] to client[%s]",
+            //         message->m_pb_data.c_str(), m_peer_addr->toString().c_str());
+            // message->m_req_id = result[i]->m_req_id;
 
-            message->m_req_id = result[i]->m_req_id;
+            // rpc
+            // 将请求体转换为协议, 作为入参调用,dispatch,获得响应协议体 message
+            RpcDispatcher::GetRpcDispatcher()->dispatch(result[i], message, this);
+
             replay_messages.emplace_back(message);
         }
         m_coder->encode(replay_messages, m_out_buffer);
@@ -243,4 +248,12 @@ void TcpConnection::pushReadMessage(const std::string& req_id, std::function<voi
     m_read_dones.insert(std::make_pair(req_id, done));
 }
 
+NetAddr::s_ptr TcpConnection::getLocalAddr() {
+    return m_local_addr;
+}
+NetAddr::s_ptr TcpConnection::getPeerAddr() {
+    return m_peer_addr;
+}
+
 }  // namespace rocket
+

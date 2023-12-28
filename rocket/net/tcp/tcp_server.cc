@@ -45,7 +45,7 @@ void TcpServer::onAccept() {
     // 将 clientfd 添加到任意 IO 线程里面
     IOThread* io_thread = m_io_thread_group->getIOThread();
     
-    TcpConnection::s_ptr connetion = std::make_shared<TcpConnection>(io_thread->getEventLoop(), client_fd, 128, peer_addr);
+    TcpConnection::s_ptr connetion = std::make_shared<TcpConnection>(io_thread->getEventLoop(), client_fd, 128, m_local_addr, peer_addr);
 
     connetion->setState(Connected); // 要设置状态为 connected, 然后才能进行 read 和 write
 

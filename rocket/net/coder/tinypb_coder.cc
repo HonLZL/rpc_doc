@@ -120,7 +120,7 @@ void TinyPBCoder::decode(std::vector<AbstractProtocol::s_ptr>& out_messages, Tcp
             message->m_err_info_len = getInt32FromNetByte(&tmp[err_info_len_index]);
             DEBUGLOG("parse m_err_info_len=%d", message->m_err_info_len);
 
-            // error info
+            // error info len
             int err_info_index = err_info_len_index + sizeof(message->m_err_info_len);
             char error_info[512] = {0};
             memcpy(&error_info[0], &tmp[err_info_index], message->m_err_info_len);

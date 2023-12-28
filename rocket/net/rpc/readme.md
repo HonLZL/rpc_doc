@@ -12,3 +12,19 @@
 
 ![Alt text](../../../imgs/screenshot-20231226-160934.png)
 
+
+
+# 2 Protobuf
+## 2.1 RPC 服务端流程
+注册 OrderService 对象
+
+1. 从 buffer 中读取数据,然后 decode 得到请求的 TinyPBProtobcol 对象,  
+   然后从请求的 TinyPBProtocol 得到 method_name, 从 OrderService 对象
+   里根据 service.method_name 找到方法 func
+2. 找到对应的 request type 以及 response type
+3. 将请求体 TinyPBProtocol 里面的 pb_data 反序列化为 request type 的
+   一个对象,生命一个空的 response type 对象
+4. 执行方法 func(request, response)
+5. 将 response 对象序列为 pb_data,再放到 TinyPBProtocol 结构体中,对其
+   做 encode,转换为二进制字节流, 然后放入 buffer 里面. 注册可写事件监听,
+   就会发送回包了
