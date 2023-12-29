@@ -43,8 +43,8 @@ class RpcController : public google::protobuf::RpcController {
     NetAddr::s_ptr GetLocalAddr();
     NetAddr::s_ptr GetPeerAddr();
 
-    void SetTImeout(int timeout);
-    int GetTImeout();
+    void SetTimeout(int timeout);
+    int GetTimeout();
 
    private:
     int m_error_code{0};

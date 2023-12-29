@@ -75,10 +75,10 @@ NetAddr::s_ptr RpcController::GetPeerAddr() {
     return m_peer_addr;
 }
 
-void RpcController::SetTImeout(int timeout) {
+void RpcController::SetTimeout(int timeout) {
     m_timeout = timeout;
 }
-int RpcController::GetTImeout() {
+int RpcController::GetTimeout() {
     return m_timeout;
 }
 }  // namespace rocket
