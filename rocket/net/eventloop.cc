@@ -16,7 +16,7 @@
     }                                                                                         \
     epoll_event tmp = event->getEpollEvent();                                                 \
     INFOLOG("epoll_event.events = %d", (int)tmp.events);                                      \
-    /*epoll_ctl: 管理红黑树上的文件描述符:添加,修改,删除*/                                          \
+    /*epoll_ctl: 管理红黑树上的文件描述符:添加,修改,删除*/                  \
     int rt = epoll_ctl(m_epoll_fd, op, event->getFd(), &tmp);                                 \
     if (rt == -1) {                                                                           \
         ERRORLOG("failed epoll_ctl when add fd, errno=%d, error=%s", errno, strerror(errno)); \
@@ -31,7 +31,7 @@
     }                                                                                         \
     int op = EPOLL_CTL_DEL;                                                                   \
     epoll_event tmp = event->getEpollEvent();                                                 \
-    int rt = epoll_ctl(m_epoll_fd, op, event->getFd(), nullptr);                                 \
+    int rt = epoll_ctl(m_epoll_fd, op, event->getFd(), nullptr);                              \
     if (rt == -1) {                                                                           \
         ERRORLOG("failed epoll_ctl when add fd, errno=%d, error=%s", errno, strerror(errno)); \
     }                                                                                         \
@@ -152,6 +152,13 @@ void EventLoop::loop() {
                     DEBUGLOG("fd %d trigger EPOLLOUT event", fd_event->getFd());
                     addTask(fd_event->handler(FdEvent::OUT_EVENT));
                 }
+                if (trigger_event.events & EPOLLERR) {
+                    DEBUGLOG("fd %d trigger EPOLLERR event", fd_event->getFd());
+                    deleteEpollEvent(fd_event);
+                    if (fd_event->handler(FdEvent::ERROR_EVENT) != nullptr) {
+                        addTask(fd_event->handler(FdEvent::ERROR_EVENT));
+                    }
+                }
             }
         }
     }
@@ -198,7 +205,7 @@ void EventLoop::addTask(std::function<void()> cb, bool is_wakeup /*=false*/) {
     ScopeMutex<Mutex> lock(m_mutex);  // 向任务队列里加任务时,要加锁
     m_pending_tasks.push(cb);
     lock.unlock();
-    
+
     if (is_wakeup) {
         wakeup();
     }
