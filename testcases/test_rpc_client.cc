@@ -10,14 +10,17 @@
 #include <memory>
 #include <string>
 
+#include "../protobuf/order.pb.h"
 #include "../rocket/common/log.h"
 #include "../rocket/net/coder/abstract_protocol.h"
 #include "../rocket/net/coder/string_coder.h"
 #include "../rocket/net/coder/tinypb_coder.h"
+#include "../rocket/net/rpc/rpc_channel.h"
+#include "../rocket/net/rpc/rpc_closure.h"
+#include "../rocket/net/rpc/rpc_controller.h"
 #include "../rocket/net/tcp/net_addr.h"
 #include "../rocket/net/tcp/tcp_client.h"
 #include "../rocket/net/tcp/tcp_server.h"
-#include "../protobuf/order.pb.h"
 
 void test_tcp_client() {
     rocket::IPNetAddr::s_ptr addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 12347);
@@ -26,7 +29,7 @@ void test_tcp_client() {
         DEBUGLOG("conenct to [%s] success", addr->toString().c_str());
         std::shared_ptr<rocket::TinyPBProtocol> message = std::make_shared<rocket::TinyPBProtocol>();
         message->info = "hello rocket!";
-        message->m_req_id = "123456789";
+        message->m_msg_id = "123456789";
         message->m_pb_data = "test pb data";
 
         makeOrderRequest request;
@@ -48,7 +51,7 @@ void test_tcp_client() {
             // 智能指针转换工具，用于在继承关系中安全地将一个智能指针转换为另一个相关类型的智能指针
             // 此处是 基类:AbstractProtocol 转化为 派生类:StringProtocol
             std::shared_ptr<rocket::TinyPBProtocol> message = std::dynamic_pointer_cast<rocket::TinyPBProtocol>(msg_ptr);
-            DEBUGLOG("req_id[%s], get response [%s]", message->m_req_id.c_str(), message->m_pb_data.c_str());
+            DEBUGLOG("msg_id[%s], get response [%s]", message->m_msg_id.c_str(), message->m_pb_data.c_str());
 
             makeOrderResponse response;
             int rt = response.ParseFromString(message->m_pb_data);
@@ -65,6 +68,38 @@ void test_tcp_client() {
     });
 }
 
+void test_rpc_channel() {
+    rocket::IPNetAddr::s_ptr addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 12346);
+    std::shared_ptr<rocket::RpcChannel> channel = std::make_shared<rocket::RpcChannel>(addr);
+
+    std::shared_ptr<makeOrderRequest> request = std::make_shared<makeOrderRequest>();
+    request->set_price(100);
+    request->set_goods("apple");
+
+    std::shared_ptr<makeOrderResponse> response = std::make_shared<makeOrderResponse>();
+
+    std::shared_ptr<rocket::RpcController> controller = std::make_shared<rocket::RpcController>();
+    controller->SetMsgId("999888");
+
+    // 构造回调函数
+    std::shared_ptr<rocket::RpcClosure> closure = std::make_shared<rocket::RpcClosure>([request, response, channel]() mutable{
+        INFOLOG("call rpc success, request [%s], response [%s]",
+                request->ShortDebugString().c_str(), response->ShortDebugString().c_str());
+        INFOLOG("now exit eventloop");
+        channel->getTcpClient()->stop();
+        channel.reset();
+    });
+
+    channel->Init(controller, request, response, closure);
+
+    // 客户端存根,
+    Order_Stub stub(channel.get());
+    DEBUGLOG("*************************");
+
+    stub.makeOrder(controller.get(), request.get(), response.get(), closure.get());
+}
+
+
 int main() {
     rocket::Config::SetGlobalConfig("../conf/rocket.xml");
 
@@ -72,7 +107,7 @@ int main() {
 
     // test_connect();
 
-    test_tcp_client();
+    test_rpc_channel();
 
     return 0;
 }

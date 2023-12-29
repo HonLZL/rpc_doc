@@ -60,7 +60,7 @@ class TcpConnection {
     void listenRead();
 
     void pushSendMessage(AbstractProtocol::s_ptr message, std::function<void(AbstractProtocol::s_ptr)> done);
-    void pushReadMessage(const std::string& req_id, std::function<void(AbstractProtocol::s_ptr)> done);
+    void pushReadMessage(const std::string& msg_id, std::function<void(AbstractProtocol::s_ptr)> done);
 
     NetAddr::s_ptr getLocalAddr();
     NetAddr::s_ptr getPeerAddr();
@@ -88,7 +88,7 @@ class TcpConnection {
     // 调用回调函数．保存智能指针，直到调用回调函数，这样才能拿到参数
     std::vector<std::pair<AbstractProtocol::s_ptr, std::function<void(AbstractProtocol::s_ptr)>>> m_write_dones;
 
-    // key 是　req_id
+    // key 是　msg_id
     std::map<std::string, std::function<void(AbstractProtocol::s_ptr)>> m_read_dones;
 
 };

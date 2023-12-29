@@ -13,6 +13,7 @@ void* fun(void*) {
 }
 
 int main() {
+    // 在不同的命名空间中使用类时,需要加上命名空间,rocker::
     rocket::Config::SetGlobalConfig("../conf/rocket.xml");
     rocket::Logger::InitGlobalLogger();
     std::cout << "873t2bfg" << std::endl;

@@ -37,19 +37,19 @@ void RpcDispatcher::dispatch(AbstractProtocol::s_ptr request, AbstractProtocol::
     std::string service_name;
     std::string method_name;
 
-    rsp_protocol->m_req_id = req_protocol->m_req_id;
+    rsp_protocol->m_msg_id = req_protocol->m_msg_id;
     rsp_protocol->m_method_name = req_protocol->m_method_name;
 
     bool rt = parseServiceFullName(method_full_name, service_name, method_name);
     if (!rt) {
-        ERRORLOG("rep_id [%s] | parse service name error [%d]", req_protocol->m_req_id.c_str(), rt);
+        ERRORLOG("rep_id [%s] | parse service name error [%d]", req_protocol->m_msg_id.c_str(), rt);
         setTinyPBError(rsp_protocol, ERROR_PARSE_SERVICE_NAME, "parse service name error");
         return;
     }
 
     auto it = m_service_map.find(service_name);
     if (it == m_service_map.end()) {
-        ERRORLOG("req_id [%s] | service name[%s] not found", req_protocol->m_req_id.c_str(), service_name.c_str());
+        ERRORLOG("msg_id [%s] | service name[%s] not found", req_protocol->m_msg_id.c_str(), service_name.c_str());
         setTinyPBError(req_protocol, ERROR_SERVICE_NOT_FOUND, "service not found");
         return;
     }
@@ -59,8 +59,8 @@ void RpcDispatcher::dispatch(AbstractProtocol::s_ptr request, AbstractProtocol::
     // 通过方法名获得 method 对象
     const google::protobuf::MethodDescriptor* method = service->GetDescriptor()->FindMethodByName(method_name);
     if (method == nullptr) {
-        ERRORLOG("req_id [%s] | method name[%s] not found in service [%s]",
-                 req_protocol->m_req_id.c_str(), service_name.c_str(), service_name.c_str());
+        ERRORLOG("msg_id [%s] | method name[%s] not found in service [%s]",
+                 req_protocol->m_msg_id.c_str(), service_name.c_str(), service_name.c_str());
         setTinyPBError(rsp_protocol, ERROR_METHOD_NOT_FOUND, "method name not found");
         return;
     }
@@ -71,13 +71,13 @@ void RpcDispatcher::dispatch(AbstractProtocol::s_ptr request, AbstractProtocol::
     rt = req_msg->ParseFromString(req_protocol->m_pb_data);
     if (!rt) {
         // 出错, 后面补充出错处理
-        ERRORLOG("req_id [%s] | deserilize error", req_protocol->m_req_id.c_str(), service_name.c_str());
+        ERRORLOG("msg_id [%s] | deserilize error", req_protocol->m_msg_id.c_str(), service_name.c_str());
         setTinyPBError(rsp_protocol, ERROR_FAILED_DESERIALIZE, "deserilize error");
         DELETE_RESOURCE(req_msg);
         return;
     }
 
-    INFOLOG("req_id = [%s], get rpc request = [%s]", req_protocol->m_req_id.c_str(), req_msg->ShortDebugString().c_str());
+    INFOLOG("msg_id = [%s], get rpc request = [%s]", req_protocol->m_msg_id.c_str(), req_msg->ShortDebugString().c_str());
 
     google::protobuf::Message* rsp_msg = service->GetResponsePrototype(method).New();
 
@@ -86,22 +86,22 @@ void RpcDispatcher::dispatch(AbstractProtocol::s_ptr request, AbstractProtocol::
     IPNetAddr::s_ptr local_addr = std::make_shared<IPNetAddr>("127.0.0.1", 12347);
     rpc_controller.SetLocalAddr(connection->getLocalAddr());
     rpc_controller.SetPeerAddr(connection->getPeerAddr());
-    rpc_controller.SetReqId(req_protocol->m_req_id);
+    rpc_controller.SetMsgId(req_protocol->m_msg_id);
 
     service->CallMethod(method, &rpc_controller, req_msg, rsp_msg, nullptr);
 
     // 序列化, 将序列化的结果存入 m_pb_data
     rt = rsp_msg->SerializeToString(&rsp_protocol->m_pb_data);
     if (!rt) {
-        ERRORLOG("req_id = [%s] | serilize error, origin message [%s]",
-                 req_protocol->m_req_id.c_str(), rsp_msg->ShortDebugString().c_str());
+        ERRORLOG("msg_id = [%s] | serilize error, origin message [%s]",
+                 req_protocol->m_msg_id.c_str(), rsp_msg->ShortDebugString().c_str());
         setTinyPBError(rsp_protocol, ERROR_FAILED_SERIALIZE, "serilize error");
         return;
     }
 
     rsp_protocol->m_err_code = 0;
-    INFOLOG("req_id = [%s] | dispatch success, request[%s], reponse[%s]",
-            req_protocol->m_req_id.c_str(), req_msg->ShortDebugString().c_str(), rsp_msg->ShortDebugString().c_str());
+    INFOLOG("msg_id = [%s] | dispatch success, request[%s], reponse[%s]",
+            req_protocol->m_msg_id.c_str(), req_msg->ShortDebugString().c_str(), rsp_msg->ShortDebugString().c_str());
 }
 
 void RpcDispatcher::registerService(service_s_ptr service) {

@@ -85,11 +85,17 @@ void TcpClient::writeMessage(AbstractProtocol::s_ptr message, std::function<void
 }
 
 // 　异步读取　message 成功，会调用　done 函数，函数的入参是　message 对象
-void TcpClient::readMessage(const std::string& req_id, std::function<void(AbstractProtocol::s_ptr)> done) {
+void TcpClient::readMessage(const std::string& msg_id, std::function<void(AbstractProtocol::s_ptr)> done) {
     // １　监听可读事件
-    // ２　从 buffer 里　decode 得到　message 对象, 判断　req_id 是否相等，相等则读成功，执行其回调函数
-    m_connection->pushReadMessage(req_id, done);
+    // ２　从 buffer 里　decode 得到　message 对象, 判断　msg_id 是否相等，相等则读成功，执行其回调函数
+    m_connection->pushReadMessage(msg_id, done);
     m_connection->listenRead();
+}
+
+void TcpClient::stop() {
+    if(!m_event_loop->isLooping()) {
+        m_event_loop->stop();
+    }
 }
 
 }  // namespace rocket

@@ -14,11 +14,11 @@ struct AbstractProtocol : public std::enable_shared_from_this<AbstractProtocol>{
     // 只要基类的析构函数是虚拟的，派生类的析构函数就会自动地成为虚函数
     virtual ~AbstractProtocol() {}
     
-    // std::string getReqId() {
+    // std::string getMsgId() {
     //     return m_msg_id;
     // }
 
-    // void setReqId(const std::string& msg_id) {
+    // void setMsgId(const std::string& msg_id) {
     //     m_msg_id = msg_id;
     // }
 

@@ -16,6 +16,8 @@
 
 namespace rocket {
 
+// 模板实现
+// 接受 str 和一个可变参数,这里的可变参数是 若干个格式化符号,%s %d 等
 template <typename... Args>
 std::string formatString(const char* str, Args&&... args) {
     int size = snprintf(nullptr, 0, str, args...);

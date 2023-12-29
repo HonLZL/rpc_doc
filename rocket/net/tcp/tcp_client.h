@@ -16,14 +16,18 @@ Read: 读取客户端发来的数据没,组装为 RPC 请求
 #ifndef ROCKET_NET_TCP_TCP_CLIENT_H
 #define ROCKET_NET_TCP_TCP_CLIENT_H
 
+#include <memory>
+
+#include "../coder/abstract_protocol.h"
+#include "../eventloop.h"
 #include "net_addr.h"
 #include "tcp_connection.h"
-#include "../eventloop.h"
-#include "../coder/abstract_protocol.h"
 
 namespace rocket {
 class TcpClient {
    public:
+    typedef std::shared_ptr<TcpClient> s_ptr;
+
     TcpClient(NetAddr::s_ptr peer_addr);
     ~TcpClient();
 
@@ -33,10 +37,9 @@ class TcpClient {
     // 异步发送 Message, 字符串 或 RPC 协议,发送成功,会调用 done 函数,函数的入参就是 message 对象
     void writeMessage(AbstractProtocol::s_ptr msssage, std::function<void(AbstractProtocol::s_ptr)> done);
 
-    void readMessage(const std::string& req_id,  std::function<void(AbstractProtocol::s_ptr)> done);
+    void readMessage(const std::string& msg_id, std::function<void(AbstractProtocol::s_ptr)> done);
 
-    
-
+    void stop();
 
    private:
     NetAddr::s_ptr m_peer_addr;
