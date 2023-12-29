@@ -22,6 +22,7 @@ Read: 读取客户端发来的数据没,组装为 RPC 请求
 #include "../eventloop.h"
 #include "net_addr.h"
 #include "tcp_connection.h"
+#include "../timer.h"
 
 namespace rocket {
 class TcpClient {
@@ -48,6 +49,8 @@ class TcpClient {
     NetAddr::s_ptr getLocalAddr();
 
     void initLocalAddr();
+
+    void addTimerEvent(TimerEvent::s_ptr timer_event);
 
    private:
     NetAddr::s_ptr m_peer_addr;

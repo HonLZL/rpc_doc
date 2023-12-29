@@ -69,36 +69,42 @@ void test_tcp_client() {
 }
 
 void test_rpc_channel() {
-    rocket::IPNetAddr::s_ptr addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 12346);
-    std::shared_ptr<rocket::RpcChannel> channel = std::make_shared<rocket::RpcChannel>(addr);
+    // rocket::IPNetAddr::s_ptr addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 12346);
+    // std::shared_ptr<rocket::RpcChannel> channel = std::make_shared<rocket::RpcChannel>(addr);
 
-    std::shared_ptr<makeOrderRequest> request = std::make_shared<makeOrderRequest>();
+    NEWRPCCHANNEL("127.0.0.1:12346", channel);
+
+    // std::shared_ptr<makeOrderRequest> request = std::make_shared<makeOrderRequest>();
+
+    // 在编译之前,宏在预处理时进行替换,所以在这不需要加 rocket::
+    NEWMESSAGE(makeOrderRequest, request);
     request->set_price(100);
     request->set_goods("apple");
 
-    std::shared_ptr<makeOrderResponse> response = std::make_shared<makeOrderResponse>();
+    // std::shared_ptr<makeOrderResponse> response = std::make_shared<makeOrderResponse>();
+    NEWMESSAGE(makeOrderResponse, response);
 
-    std::shared_ptr<rocket::RpcController> controller = std::make_shared<rocket::RpcController>();
+    // std::shared_ptr<rocket::RpcController> controller = std::make_shared<rocket::RpcController>();
+    NEWRPCCONTROLLER(controller);
     controller->SetMsgId("999888");
 
     // 构造回调函数
-    std::shared_ptr<rocket::RpcClosure> closure = std::make_shared<rocket::RpcClosure>([request, response, channel]() mutable{
-        INFOLOG("call rpc success, request [%s], response [%s]",
-                request->ShortDebugString().c_str(), response->ShortDebugString().c_str());
+    std::shared_ptr<rocket::RpcClosure> closure = std::make_shared<rocket::RpcClosure>([controller, request, response, channel]() mutable {
+        if (controller->GetErrorCode() == 0) {
+            INFOLOG("call rpc success, request [%s], response [%s]",
+                    request->ShortDebugString().c_str(), response->ShortDebugString().c_str());
+            // 执行其他业务逻辑
+        } else {
+            INFOLOG("call rpc failedd, request [%s], error code [%d], error info [%s]",
+                    request->ShortDebugString().c_str(), controller->GetErrorCode(), controller->GetErrorInfo().c_str());
+        }
         INFOLOG("now exit eventloop");
         channel->getTcpClient()->stop();
         channel.reset();
     });
-
-    channel->Init(controller, request, response, closure);
-
-    // 客户端存根,
-    Order_Stub stub(channel.get());
-    DEBUGLOG("*************************");
-
-    stub.makeOrder(controller.get(), request.get(), response.get(), closure.get());
+    controller->SetTimeout(10000); // ms
+    CALLRPC("127.0.0.1:12346", makeOrder, controller, request, response, closure);
 }
-
 
 int main() {
     rocket::Config::SetGlobalConfig("../conf/rocket.xml");

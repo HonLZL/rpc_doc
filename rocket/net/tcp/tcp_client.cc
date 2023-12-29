@@ -9,6 +9,7 @@
 #include "net_addr.h"
 #include "tcp_client.h"
 #include "tcp_connection.h"
+#include "../timer.h"
 
 namespace rocket {
 TcpClient::TcpClient(NetAddr::s_ptr peer_addr)
@@ -138,6 +139,10 @@ void TcpClient::initLocalAddr() {
         return;
     }
     m_local_addr = std::make_shared<IPNetAddr>(local_addr);
+}
+
+void TcpClient::addTimerEvent(TimerEvent::s_ptr timer_event) {
+    m_event_loop->addTimerEvent(timer_event);
 }
 
 }  // namespace rocket
