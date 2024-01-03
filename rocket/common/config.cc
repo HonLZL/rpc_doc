@@ -1,24 +1,24 @@
 // /usr/include/tinyxml
+#include "config.h"
 #include <tinyxml/tinyxml.h>
 #include <string>
-#include "config.h"
 
 // 使用了 # 符号，将 x 参数转换为字符串字面量
 // a##b, 使用了 ## 操作符将传入的参数 a 和 b 连接在一起
-#define READ_XML_NODE(name, parent)                                            \
-    TiXmlElement* name##_node = parent->FirstChildElement(#name);        \
-    if (!name##_node) {                                                        \
+#define READ_XML_NODE(name, parent)                                                                                          \
+    TiXmlElement* name##_node = parent->FirstChildElement(#name);                                                            \
+    if (!name##_node) {                                                                                                      \
         printf("Start rocket server error, failed to read node [%s] error info [%s] \n ", #name, xml_document->ErrorDesc()); \
-        exit(0);                                                               \
+        exit(0);                                                                                                             \
     }
 
-#define READ_STR_FROM_XML_NODE(name, parent)                                        \
-    TiXmlElement* name##_node = parent->FirstChildElement(#name);             \
-    if (!name##_node || !name##_node->GetText()) {                                  \
+#define READ_STR_FROM_XML_NODE(name, parent)                                         \
+    TiXmlElement* name##_node = parent->FirstChildElement(#name);                    \
+    if (!name##_node || !name##_node->GetText()) {                                   \
         printf("Start rocket server error, failed to read config file %s\n", #name); \
-        exit(0);                                                                    \
-    } \
-    std::string name##_str = std::string(name##_node->GetText()); \
+        exit(0);                                                                     \
+    }                                                                                \
+    std::string name##_str = std::string(name##_node->GetText());
 
 namespace rocket {
 
@@ -45,12 +45,31 @@ Config::Config(const char* xmlfile) {
     }
 
     READ_XML_NODE(root, xml_document);
-
     READ_XML_NODE(log, root_node);
+    READ_XML_NODE(server, root_node);
 
     READ_STR_FROM_XML_NODE(log_level, log_node);
+    READ_STR_FROM_XML_NODE(log_file_name, log_node);
+    READ_STR_FROM_XML_NODE(log_file_path, log_node);
+    READ_STR_FROM_XML_NODE(log_max_file_size, log_node);
+    READ_STR_FROM_XML_NODE(log_sync_interval, log_node);
 
     m_log_level = log_level_str;
 
+    m_log_file_name = log_file_name_str;
+    m_log_file_path = log_file_path_str;
+    m_log_max_file_size = std::atoi(log_max_file_size_str.c_str());
+    m_log_sync_interval = std::atoi(log_sync_interval_str.c_str());  // 日志同步间隔 ms
+
+    printf("LOG -- CONFIG LEVEL[%s], FILE_NAME[%s],FILE_PATH[%s] MAX_FILE_SIZE[%d B], SYNC_INTEVAL[%d ms]\n",
+           m_log_level.c_str(), m_log_file_name.c_str(), m_log_file_path.c_str(), m_log_max_file_size, m_log_sync_interval);
+
+    READ_STR_FROM_XML_NODE(port, server_node);
+    READ_STR_FROM_XML_NODE(io_threads, server_node);
+
+    m_port = std::atoi(port_str.c_str());
+    m_io_threads = std::atoi(io_threads_str.c_str());
+
+    printf("Server -- PORT[%d], IO Threads[%d]\n", m_port, m_io_threads);
 }
 }  // namespace rocket

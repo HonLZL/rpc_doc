@@ -87,6 +87,7 @@ void test_rpc_channel() {
     // std::shared_ptr<rocket::RpcController> controller = std::make_shared<rocket::RpcController>();
     NEWRPCCONTROLLER(controller);
     controller->SetMsgId("999888");
+    controller->SetTimeout(10000); // ms
 
     // 构造回调函数
     std::shared_ptr<rocket::RpcClosure> closure = std::make_shared<rocket::RpcClosure>([controller, request, response, channel]() mutable {
@@ -99,15 +100,14 @@ void test_rpc_channel() {
                     request->ShortDebugString().c_str(), controller->GetErrorCode(), controller->GetErrorInfo().c_str());
         }
         INFOLOG("now exit eventloop");
-        channel->getTcpClient()->stop();
+        // channel->getTcpClient()->stop();
         channel.reset();
     });
-    controller->SetTimeout(10000); // ms
     CALLRPC("127.0.0.1:12346", makeOrder, controller, request, response, closure);
 }
 
 int main() {
-    rocket::Config::SetGlobalConfig("../conf/rocket.xml");
+    rocket::Config::SetGlobalConfig("../conf/rocket_client.xml");
 
     rocket::Logger::InitGlobalLogger();
 

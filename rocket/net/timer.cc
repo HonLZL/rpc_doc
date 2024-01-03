@@ -79,18 +79,18 @@ void Timer::resetArriveTime() {
     }
     int64_t now = getNowMs();
     auto it = tmp.begin();
-    int64_t inteval = 0;
+    int64_t interval = 0;
     if (it->second->getArriveTime() > now) {
-        inteval = it->second->getArriveTime() - now;
+        interval = it->second->getArriveTime() - now;
     } else {
-        inteval = 100;
+        interval = 100;
     }
     timespec ts;
     memset(&ts, 0, sizeof(ts)); 
     // tv_sec 时间的秒数部分 用于存储从 1970 年 1 月 1 日开始的秒数
     // tv_nsec 时间的纳秒部分
-    ts.tv_sec = inteval / 1000;  // inteval 是微秒,得到秒数
-    ts.tv_nsec = (inteval % 1000) * 1000000;  // 得到纳秒数
+    ts.tv_sec = interval / 1000;  // interval 是微秒,得到秒数
+    ts.tv_nsec = (interval % 1000) * 1000000;  // 得到纳秒数
 
     itimerspec value;
     memset(&value, 0, sizeof(value));
@@ -103,7 +103,7 @@ void Timer::resetArriveTime() {
     if (rt != 0) {
         ERRORLOG("timefd set time error, errno=%d, error=%s", errno, strerror(errno));
     }
-    DEBUGLOG("timer reset to %lld", now + inteval);
+    DEBUGLOG("timer reset to %lld", now + interval);
 }
 
 void Timer::addTimerEvent(TimerEvent::s_ptr event) {

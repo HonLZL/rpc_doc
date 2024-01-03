@@ -34,3 +34,4 @@
 # File
 .vscode/
 build/
+log/

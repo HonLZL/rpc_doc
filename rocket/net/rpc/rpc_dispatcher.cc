@@ -9,6 +9,7 @@
 #include "../tcp/tcp_connection.h"
 #include "rpc_controller.h"
 #include "rpc_dispatcher.h"
+#include "../../common/run_time.h"
 
 #define DELETE_RESOURCE(XX) \
     if (XX != NULL) {       \
@@ -87,6 +88,11 @@ void RpcDispatcher::dispatch(AbstractProtocol::s_ptr request, AbstractProtocol::
     rpc_controller.SetLocalAddr(connection->getLocalAddr());
     rpc_controller.SetPeerAddr(connection->getPeerAddr());
     rpc_controller.SetMsgId(req_protocol->m_msg_id);
+
+    // rpc 运行时, 获得消息号,方法名
+    RunTime::GetRunTime()->m_msg_id = req_protocol->m_msg_id;
+    RunTime::GetRunTime()->m_method_name = method_name;
+
 
     service->CallMethod(method, &rpc_controller, req_msg, rsp_msg, nullptr);
 
