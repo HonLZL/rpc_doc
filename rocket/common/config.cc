@@ -30,8 +30,16 @@ Config* Config::GetGlobalConfig() {
 
 void Config::SetGlobalConfig(const char* xmlfile) {
     if (g_config == nullptr) {
-        g_config = new Config(xmlfile);
+        if (xmlfile != nullptr) {
+            g_config = new Config(xmlfile);
+        } else {
+            g_config = new Config();
+        }
     }
+}
+
+Config::Config() {
+    m_log_level = "DEBUG";
 }
 
 Config::Config(const char* xmlfile) {

@@ -51,19 +51,18 @@ std::string formatString(const char* str, Args&&... args) {
 
 #define APPDEBUGLOG(str, ...)                                                                                            \
     rocket::Logger::GetGlobalLogger()->pushAppLog((new rocket::LogEvent(rocket::LogLevel::Debug))->toString() +          \
-                                               "[" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "]\t" + \
-                                               rocket::formatString(str, ##__VA_ARGS__) + '\n');
+                                                  "[" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "]\t" + \
+                                                  rocket::formatString(str, ##__VA_ARGS__) + '\n');
 
 #define APPINFOLOG(str, ...)                                                                                             \
     rocket::Logger::GetGlobalLogger()->pushAppLog((new rocket::LogEvent(rocket::LogLevel::Info))->toString() +           \
-                                               "[" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "]\t" + \
-                                               rocket::formatString(str, ##__VA_ARGS__) + '\n');
+                                                  "[" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "]\t" + \
+                                                  rocket::formatString(str, ##__VA_ARGS__) + '\n');
 
 #define APPERRORLOG(str, ...)                                                                                            \
     rocket::Logger::GetGlobalLogger()->pushAppLog((new rocket::LogEvent(rocket::LogLevel::Error))->toString() +          \
-                                               "[" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "]\t" + \
-                                               rocket::formatString(str, ##__VA_ARGS__) + '\n');
-
+                                                  "[" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "]\t" + \
+                                                  rocket::formatString(str, ##__VA_ARGS__) + '\n');
 
 enum LogLevel {
     UnKonwn = 0,
@@ -71,7 +70,6 @@ enum LogLevel {
     Info = 2,
     Error = 3
 };
-
 
 // 异步日志, 生产者消费者模型,
 class AsyncLogger {
@@ -117,7 +115,7 @@ class Logger {
    public:
     typedef std::shared_ptr<Logger> s_ptr;
 
-    Logger(LogLevel level);
+    Logger(LogLevel level, int type = 1);
 
     void pushLog(const std::string& msg);
     void pushAppLog(const std::string& msg);
@@ -128,7 +126,7 @@ class Logger {
 
     // void log(LogEvent event);
     static Logger* GetGlobalLogger();
-    static void InitGlobalLogger();
+    static void InitGlobalLogger(int type = 1);
 
     void syncLoop();
 
@@ -152,6 +150,9 @@ class Logger {
     AsyncLogger::s_ptr m_async_app_logger;
 
     TimerEvent::s_ptr m_timer_event;
+
+    // 日志类型, 1 是异步, 2 是同步
+    int m_type{0};
 };
 
 std::string LogLevelToString(LogLevel level);
@@ -182,7 +183,6 @@ class LogEvent {
 
     AsyncLogger::s_ptr m_async_logger;
 };
-
 
 }  // namespace rocket
 

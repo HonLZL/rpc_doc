@@ -6,6 +6,7 @@ namespace rocket {
 class Config {
    public:
     Config(const char* xmlfile);
+    Config();
 
     static Config* GetGlobalConfig();
     static void SetGlobalConfig(const char* xmlfile);   // 读取 xml 文件

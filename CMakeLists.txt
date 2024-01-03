@@ -34,21 +34,21 @@ message(${PROJECT_SOURCE_DIR})
 # message(${SRC_LIST})
 
 # 添加可执行文件生成
-add_executable(test_rpc_server testcases/test_rpc_server.cc ${SRC_LIST})
-add_executable(test_rpc_client testcases/test_rpc_client.cc ${SRC_LIST})
+add_executable(example_server testcases/example_server.cc ${SRC_LIST})
+add_executable(example_client testcases/example_client.cc ${SRC_LIST})
 # add_executable(test_log testcases/test_log.cc ${SRC_LIST})
 
 # 添加线程库
-target_link_libraries(test_rpc_server pthread)
-target_link_libraries(test_rpc_client pthread)
+target_link_libraries(example_server pthread)
+target_link_libraries(example_client pthread)
 # target_link_libraries(test_log pthread)
 
-target_link_libraries(test_rpc_server tinyxml)
-target_link_libraries(test_rpc_client tinyxml)
+target_link_libraries(example_server tinyxml)
+target_link_libraries(example_client tinyxml)
 # target_link_libraries(test_log tinyxml)
 
-target_link_libraries(test_rpc_server protobuf)
-target_link_libraries(test_rpc_client protobuf)
+target_link_libraries(example_server protobuf)
+target_link_libraries(example_client protobuf)
 
 
 # sudo code --user-data-dir ="~/.vscode-root" --no-sandbox

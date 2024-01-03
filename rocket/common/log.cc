@@ -8,8 +8,8 @@
 #include "config.h"
 #include "log.h"
 #include "mutex.h"
-#include "util.h"
 #include "run_time.h"
+#include "util.h"
 
 namespace rocket {
 
@@ -18,8 +18,11 @@ Logger* Logger::GetGlobalLogger() {
     return g_logger;
 }
 
-Logger::Logger(LogLevel level)
-    : m_set_level(level) {
+Logger::Logger(LogLevel level, int type /*=1*/)
+    : m_set_level(level), m_type(type) {
+    if (m_type == 0) {
+        return;
+    }
     m_async_logger = std::make_shared<AsyncLogger>(
         Config::GetGlobalConfig()->m_log_file_name + "_rpc",
         Config::GetGlobalConfig()->m_log_file_path,
@@ -32,16 +35,19 @@ Logger::Logger(LogLevel level)
 }
 
 void Logger::init() {
+    if (m_type == 0) {
+        return;
+    }
+
     m_timer_event = std::make_shared<TimerEvent>(Config::GetGlobalConfig()->m_log_sync_interval,
                                                  true, std::bind(&Logger::syncLoop, this));  // 成员函数传入需要有 this, 表示 this.syncLoop(), 如果是静态函数则不需要
-
     EventLoop::GetCurrentEventLoop()->addTimerEvent(m_timer_event);
 }
 
 void Logger::syncLoop() {
     // 同步 m_buffer 到 async_logger 的 buffer 队尾
-    printf("sync to async logger\n");
-    printf("m_buffer size = %ld,\t m_app_buffer size = %ld\n", m_buffer.size(), m_app_buffer.size());
+    // printf("sync to async logger\n");
+    // printf("m_buffer size = %ld,\t m_app_buffer size = %ld\n", m_buffer.size(), m_app_buffer.size());
     std::vector<std::string> tmp_vec;
     ScopeMutex<Mutex> lock(m_mutex);
     tmp_vec.swap(m_buffer);
@@ -65,13 +71,12 @@ void Logger::syncLoop() {
     tmp_vec2.clear();
 }
 
-
 // 设置 日志级别, 并作为入参, 初始化 全局 g_logger,
-void Logger::InitGlobalLogger() {
+void Logger::InitGlobalLogger(int type /*=1*/) {
     LogLevel global_log_level = StringToLogLevel(Config::GetGlobalConfig()->m_log_level);
     printf("Init log level [%s] \n", LogLevelToString(global_log_level).c_str());
 
-    g_logger = new Logger(global_log_level);
+    g_logger = new Logger(global_log_level, type);
     g_logger->init();
 }
 
@@ -132,17 +137,21 @@ std::string LogEvent::toString() {
     // 获取当前线程处理的请求的 msgid
     std::string msg_id = RunTime::GetRunTime()->m_msg_id;
     std::string method_name = RunTime::GetRunTime()->m_method_name;
-    if(!msg_id.empty()) {
+    if (!msg_id.empty()) {
         ss << "[" << m_pid << ":" << m_thread_id << "]\t";
     }
-    if(!method_name.empty()) {
+    if (!method_name.empty()) {
         ss << "[" << method_name << "]\t";
     }
-    
+
     return ss.str();
 }
 
 void Logger::pushLog(const std::string& msg) {
+    if (m_type == 0) {
+        printf((msg + "\n").c_str());
+        return;
+    }
     ScopeMutex<Mutex> lock(m_mutex);
     m_buffer.push_back(msg);
     lock.unlock();
@@ -271,13 +280,13 @@ void AsyncLogger::flush() {
 }
 
 void AsyncLogger::pushLogBuffer(std::vector<std::string>& vec) {
-  ScopeMutex<Mutex> lock(m_mutex);
-  m_buffer.push(vec);
-  pthread_cond_signal(&m_condtion);
+    ScopeMutex<Mutex> lock(m_mutex);
+    m_buffer.push(vec);
+    pthread_cond_signal(&m_condtion);
 
-  lock.unlock();
+    lock.unlock();
 
-  // 这时候需要唤醒异步日志线程
-  printf("pthread_cond_signal\n");
+    // 这时候需要唤醒异步日志线程
+    // printf("pthread_cond_signal\n");
 }
 }  // namespace rocket

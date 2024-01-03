@@ -9,7 +9,6 @@ connect ->  encode  ->  write  ->   read  ->   decode
 
 #include <google/protobuf/service.h>
 
-
 #include "../tcp/net_addr.h"
 #include "../tcp/tcp_client.h"
 #include "../timer.h"
@@ -25,11 +24,11 @@ namespace rocket {
 #define NEWRPCCHANNEL(addr, var_name) \
     std::shared_ptr<rocket::RpcChannel> var_name = std::make_shared<rocket::RpcChannel>(std::make_shared<rocket::IPNetAddr>(addr));
 
-#define CALLRPC(addr, method_name, controller, request, response, closure)                                     \
-    {                                                                                                          \
-        NEWRPCCHANNEL(addr, channel)                                                                           \
-        channel->Init(controller, request, response, closure);                                                 \
-        Order_Stub(channel.get()).method_name(controller.get(), request.get(), response.get(), closure.get()); \
+#define CALLRPC(addr, stub_name, method_name, controller, request, response, closure)                         \
+    {                                                                                                         \
+        NEWRPCCHANNEL(addr, channel)                                                                          \
+        channel->Init(controller, request, response, closure);                                                \
+        stub_name(channel.get()).method_name(controller.get(), request.get(), response.get(), closure.get()); \
     }
 
 class RpcChannel : public google::protobuf::RpcChannel, public std::enable_shared_from_this<RpcChannel> {
