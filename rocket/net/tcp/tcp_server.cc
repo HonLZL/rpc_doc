@@ -2,6 +2,7 @@
 #include "../../common/log.h"
 #include "../eventloop.h"
 #include "tcp_connection.h"
+#include "../../config.h"
 
 namespace rocket {
 TcpServer::TcpServer(NetAddr::s_ptr local_addr)
@@ -27,7 +28,7 @@ void TcpServer::init() {
     // 创建一个使用 m_local_addr 初始化的 TcpAcceptor 的对象
     m_acceptor = std::make_shared<TcpAcceptor>(m_local_addr);
     m_main_event_loop = EventLoop::GetCurrentEventLoop();
-    m_io_thread_group = new IOThreadGroup(2);
+    m_io_thread_group = new IOThreadGroup(Config::GetGlobalConfig()->m_io_threads);
 
     m_listen_fd_event = new FdEvent(m_acceptor->getListenFd());
     m_listen_fd_event->listen(FdEvent::IN_EVENT, std::bind(&TcpServer::onAccept, this));
